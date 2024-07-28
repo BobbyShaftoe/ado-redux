@@ -1,0 +1,10 @@
+###
+
+# curl -X POST  http://localhost:8080/posts -d '{"body": "this is the first post"}'
+POST http://localhost:8080/posts
+Content-Type: application/json
+
+{"body": "this is the second post"}
+
+###
+
