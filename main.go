@@ -3,10 +3,12 @@ package main
 import (
 	"HTTP_Sever/handlers"
 	"HTTP_Sever/helpers/ado"
+	"HTTP_Sever/model"
 	"context"
 	"fmt"
 	"github.com/a-h/templ"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 	"log"
 	"net/http"
@@ -62,14 +64,14 @@ func main() {
 
 	adoConnection := handlers.NewPATConnection(adoClientInfo)
 	adoCtx := context.Background()
-	//coreClient := handlers.NewADOClient(adoCtx, adoConnection)
+	coreClient := handlers.NewADOClient(adoCtx, adoConnection)
 	gitClient := handlers.NewGitClient(adoCtx, adoConnection)
 
-	//responseValue, err := coreClient.GetProjects(adoCtx, core.GetProjectsArgs{})
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//fmt.Println(ado.ReturnProjects(responseValue))
+	responseValue, err := coreClient.GetProjects(adoCtx, core.GetProjectsArgs{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(ado.ReturnProjects(responseValue))
 
 	responseValue2, err := gitClient.GetRepositories(adoCtx, git.GetRepositoriesArgs{})
 	if err != nil {
@@ -77,13 +79,23 @@ func main() {
 	}
 	fmt.Println(ado.ReturnGitRepos(responseValue2))
 
-	tMap := handlers.NewTemplMap()
+	dashboardData := model.DashboardData{
+		Projects: ado.ReturnProjects(responseValue),
+		Repos:    ado.ReturnGitRepos(responseValue2),
+	}
+
+	//helloData := handlers.HelloData{
+	//	Name: "Nick",
+	//}
 
 	fs := http.FileServer(http.Dir("static"))
 
-	http.Handle("/", templ.Handler(handlers.RenderRouteTempl(*tMap, "index")))
-	http.Handle("/hello", templ.Handler(handlers.RenderRouteTempl(*tMap, "hello")))
-	http.Handle("/dashboard", templ.Handler(handlers.RenderRouteTempl(*tMap, "dashboard")))
+	http.Handle("/", templ.Handler(handlers.RenderIndex()))
+
+	http.Handle("/hello", templ.Handler(handlers.RenderHello("Nick")))
+
+	http.Handle("/dashboard", templ.Handler(handlers.RenderDashboard(dashboardData)))
+
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	fmt.Println("Server is running at http://localhost:8080")

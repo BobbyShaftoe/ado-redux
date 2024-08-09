@@ -8,10 +8,13 @@ templ Layout() {
 			<title>Ado User Dashboard Redux</title>
 			<script src="https://unpkg.com/htmx.org@2.0.1"></script>
 			<script src="https://unpkg.com/alpinejs" defer></script>
+			<script src="/static/light-dark-mode.js" defer></script>
 			<link rel="stylesheet" href="/static/style.css"/>
 		</head>
-		@Header()
-		{ children... }
-		@Footer()
+		<body class="bg-white dark:bg-gray-800">
+            @Header()
+            { children... }
+            @Footer()
+        </body>
 	</html>
 }

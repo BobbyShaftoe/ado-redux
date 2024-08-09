@@ -1,12 +1,16 @@
 package views
 
-templ Dashboard(repositories []Repository) {
+import (
+    "HTTP_Sever/model"
+)
+
+templ Dashboard(dashboardData model.DashboardData) {
 	@Layout() {
-		<div class="2xl:max-w-7xl flex flex-wrap items-center justify-between mx-auto p-2 m-4 border rounded-md sm:border-solid sm:border-gray-200">
+		<div class="2xl:max-w-7xl flex flex-wrap items-center justify-between mx-auto p-2 m-4 border rounded-md sm:border-solid sm:border-gray-200 dark:border-gray-600">
 			//https://flowbite.com/docs/components/tables/
 			<div class="relative overflow-x-auto">
-				<table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-					<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+				<table class="w-full text-sm text-left rtl:text-right text-gray-700 dark:text-gray-300">
+					<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-100">
 						<tr>
 							<th scope="col" class="px-6 py-3">
 								Name
@@ -23,16 +27,16 @@ templ Dashboard(repositories []Repository) {
 						</tr>
 					</thead>
 					<tbody>
-						for _, repo := range repositories {
+						for _, repo := range dashboardData.Repos {
 							<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-								<th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-									{ repo.Name }
+								<th scope="row" class="px-6 py-4 font-medium text-blue-900 hover:underline whitespace-nowrap dark:text-white">
+									<a href={templ.SafeURL( repo.WebUrl) } class="">{ repo.Name }</a>
 								</th>
 								<td class="px-6 py-4">
-									{ repo.Id }
+									{ repo.Id.String() }
 								</td>
 								<td class="px-6 py-4">
-									{ repo.WebUrl }
+									<a href={templ.SafeURL( repo.WebUrl) }>Link</a>
 								</td>
 								<td class="px-6 py-4">
 									{ repo.DefaultBranch }

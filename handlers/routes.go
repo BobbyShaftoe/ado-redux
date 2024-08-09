@@ -1,35 +1,19 @@
 package handlers
 
 import (
-	"HTTP_Sever/helpers/ado"
+	"HTTP_Sever/model"
 	"HTTP_Sever/views"
 	"github.com/a-h/templ"
 )
 
-type adoRouteInterface interface {
-	RenderRouteTempl(templMap TemplMap, route string) templ.Component
+func RenderHello(name string) templ.Component {
+	return views.Hello("Nick")
 }
 
-type GitRepo []ado.GitRepo
-
-type TemplMap struct {
-	templMap map[string]templ.Component
+func RenderIndex() templ.Component {
+	return views.Index()
 }
 
-func NewTemplMap() *TemplMap {
-	return &TemplMap{
-		templMap: map[string]templ.Component{
-			"index":     views.Layout(),
-			"hello":     views.Hello(),
-			"dashboard": views.Dashboard([]ado.GitRepo{}),
-		},
-	}
-}
-
-func (g GitRepo) RenderRouteTempl(templMap TemplMap, route string, gitRepo GitRepo) templ.Component {
-	return templMap.templMap[route]
-}
-
-func RenderRouteTempl(templMap TemplMap, route string) templ.Component {
-	return templMap.templMap[route]
+func RenderDashboard(dashboardData model.DashboardData) templ.Component {
+	return views.Dashboard(dashboardData)
 }
