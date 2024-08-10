@@ -1,8 +1,6 @@
 package views
 
-import (
-    "HTTP_Sever/model"
-)
+import "HTTP_Sever/model"
 
 templ Dashboard(dashboardData model.DashboardData) {
 	@Layout() {
@@ -12,16 +10,16 @@ templ Dashboard(dashboardData model.DashboardData) {
 				<table class="w-full text-sm text-left rtl:text-right text-gray-700 dark:text-gray-300">
 					<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-100">
 						<tr>
-							<th scope="col" class="px-6 py-3">
+							<th scope="col" class="px-6 py-2">
 								Name
 							</th>
-							<th scope="col" class="px-6 py-3">
+							<th scope="col" class="px-6 py-2">
 								Id
 							</th>
-							<th scope="col" class="px-6 py-3">
+							<th scope="col" class="px-6 py-2">
 								WebUrl
 							</th>
-							<th scope="col" class="px-6 py-3">
+							<th scope="col" class="px-6 py-2">
 								DefaultBranch
 							</th>
 						</tr>
@@ -29,16 +27,16 @@ templ Dashboard(dashboardData model.DashboardData) {
 					<tbody>
 						for _, repo := range dashboardData.Repos {
 							<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-								<th scope="row" class="px-6 py-4 font-medium text-blue-900 hover:underline whitespace-nowrap dark:text-blue-300">
-									<a href={templ.SafeURL( repo.WebUrl) } class="">{ repo.Name }</a>
+								<th scope="row" class="px-6 py-2 font-medium text-blue-900 hover:underline whitespace-nowrap dark:text-blue-300">
+									<a href={ templ.SafeURL(repo.WebUrl) } class="">{ repo.Name }</a>
 								</th>
-								<td class="px-6 py-4">
+								<td class="px-6 py-2">
 									{ repo.Id.String() }
 								</td>
-								<td class="px-6 py-4">
-									<a href={templ.SafeURL( repo.WebUrl) }>Link</a>
+								<td class="px-6 py-2">
+									<a href={ templ.SafeURL(repo.WebUrl) }>Link</a>
 								</td>
-								<td class="px-6 py-4">
+								<td class="px-6 py-2">
 									{ repo.DefaultBranch }
 								</td>
 							</tr>
