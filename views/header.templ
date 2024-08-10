@@ -103,8 +103,8 @@ templ Header() {
 			<div x-data="{ dropdownOpen: false }"
                 class="relative">
 
-                <button @click="dropdownOpen=true" class="inline-flex items-center justify-center h-10 py-2 pl-3 pr-12 text-sm font-normal transition-colors bg-white dark:bg-button-blue border rounded dark:border-nav-blue text-neutral-700 dark:text-nav-blue hover:bg-neutral-100 active:bg-white focus:bg-white focus:outline-none disabled:opacity-50 disabled:pointer-events-none">
-                    <img src="/static/projects.png" class="object-cover w-8 h-8 border rounded-full border-neutral-200" />
+                <button @click="dropdownOpen=true" class="inline-flex items-center justify-center h-10 py-2 pl-3 pr-12 text-sm font-normal transition-colors bg-white dark:bg-button-blue border rounded dark:border-button-blue-dark text-neutral-700 dark:text-nav-blue-light dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-nav-blue active:bg-white focus:bg-white focus:outline-none disabled:opacity-50 disabled:pointer-events-none">
+                    <img src="/static/projects.png" class="object-cover w-6 h-6 border rounded-full border-neutral-200" />
                     <span class="flex flex-row items-start flex-shrink-0 h-full ml-2 leading-none translate-y-px">
                         <span class="text-base -my-1 p-0">Projects</span>
                     </span>
@@ -118,13 +118,13 @@ templ Header() {
                     x-transition:enter-end="translate-y-0"
                     class="absolute top-0 z-50 w-56 mt-12 -translate-x-1/2 left-1/2"
                     x-cloak>
-                    <div class="p-1 mt-1 bg-white border rounded-md shadow-md border-neutral-200/70 text-neutral-700">
+                    <div class="p-1 mt-1 bg-white dark:bg-button-blue border rounded shadow-md border-neutral-200/70 dark:border-button-blue-dark text-neutral-700 dark:text-neutral-200">
 
-                        <a href="/hello" class="relative flex cursor-default select-none hover:bg-neutral-100 items-center rounded px-2 py-1.5 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+                        <a href="/hello" class="relative flex cursor-default select-none hover:bg-neutral-100 dark:hover:bg-nav-blue items-center rounded px-2 py-1.5 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
                             <span>Profile</span>
                             <span class="ml-auto text-xs tracking-widest opacity-60">⇧⌘P</span>
                         </a>
-                        <a href="#_" class="relative flex cursor-default select-none hover:bg-neutral-100 items-center rounded px-2 py-1.5 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+                        <a href="#_" class="relative flex cursor-default select-none hover:bg-neutral-100 dark:hover:bg-nav-blue items-center rounded px-2 py-1.5 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
                             <span>Billing</span><span class="ml-auto text-xs tracking-widest opacity-60">⌘B</span>
                         </a>
 
