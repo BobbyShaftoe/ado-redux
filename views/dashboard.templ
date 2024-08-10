@@ -29,7 +29,7 @@ templ Dashboard(dashboardData model.DashboardData) {
 					<tbody>
 						for _, repo := range dashboardData.Repos {
 							<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-								<th scope="row" class="px-6 py-4 font-medium text-blue-900 hover:underline whitespace-nowrap dark:text-white">
+								<th scope="row" class="px-6 py-4 font-medium text-blue-900 hover:underline whitespace-nowrap dark:text-blue-300">
 									<a href={templ.SafeURL( repo.WebUrl) } class="">{ repo.Name }</a>
 								</th>
 								<td class="px-6 py-4">

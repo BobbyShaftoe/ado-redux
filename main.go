@@ -22,8 +22,9 @@ type Post struct {
 }
 
 type EnvVars struct {
-	DBPass string
-	PAT    string
+	DBPass  string
+	PAT     string
+	PROJECT string
 }
 
 type User struct {
@@ -59,7 +60,7 @@ func main() {
 	envVars := EnvVars{}
 	envVars.getEnv()
 
-	adoClientInfo := handlers.GetADOClientInfo("https://dev.azure.com/Kingsizenix", envVars.PAT)
+	adoClientInfo := handlers.GetADOClientInfo("https://dev.azure.com/"+envVars.PROJECT, envVars.PAT)
 	fmt.Println(adoClientInfo)
 
 	adoConnection := handlers.NewPATConnection(adoClientInfo)
@@ -105,10 +106,15 @@ func main() {
 func (envvars *EnvVars) getEnv() {
 	envvars.DBPass = os.Getenv("DB_PASS")
 	envvars.PAT = os.Getenv("AZURE_TOKEN")
+	envvars.PROJECT = os.Getenv("ADO_PROJECT")
+
 	if envvars.DBPass == "" {
 		log.Fatal("DB_PASS environment variable not set")
 	}
 	if envvars.PAT == "" {
 		log.Fatal("AZURE_TOKEN environment variable not set")
+	}
+	if envvars.PROJECT == "" {
+		log.Fatal("PROJECT environment variable not set")
 	}
 }
