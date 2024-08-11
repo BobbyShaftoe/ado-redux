@@ -85,8 +85,12 @@ func main() {
 		Repos:    ado.ReturnGitRepos(responseValue2),
 	}
 
-	globalState := model.GlobalState{}
-	globalState.UpdateGlobalState("Nick", ado.ReturnProjects(responseValue))
+	globalState := model.GlobalState{
+		User:           "Nick",
+		Projects:       ado.ReturnProjects(responseValue),
+		CurrentProject: ado.ReturnProjects(responseValue)[0],
+	}
+
 	fmt.Println("GLOBAL STATE")
 	fmt.Println(globalState)
 
@@ -96,7 +100,7 @@ func main() {
 
 	http.Handle("/hello", templ.Handler(handlers.RenderHello(globalState)))
 
-	http.Handle("/dashboard", templ.Handler(handlers.RenderDashboard(dashboardData, globalState)))
+	http.Handle("/dashboard", templ.Handler(handlers.RenderDashboard(dashboardData, &globalState)))
 
 	http.HandleFunc("/dashboard-update", handlers.RenderDashboard2(dashboardData, &globalState))
 

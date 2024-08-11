@@ -6,6 +6,14 @@ type GlobalState struct {
 	CurrentProject string
 }
 
+func NewGlobalState(user string, projects []string) *GlobalState {
+	return &GlobalState{
+		User:           user,
+		Projects:       projects,
+		CurrentProject: projects[0],
+	}
+}
+
 func (g *GlobalState) UpdateGlobalState(user string, projects []string) {
 	g.User = user
 	g.Projects = projects
