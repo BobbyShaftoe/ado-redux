@@ -3,7 +3,6 @@ package handlers
 import (
 	"HTTP_Sever/model"
 	"HTTP_Sever/views"
-	"fmt"
 	"github.com/a-h/templ"
 	"net/http"
 )
@@ -20,13 +19,10 @@ func RenderDashboard(dashboardData model.DashboardData, globalState model.Global
 	return views.Dashboard(dashboardData, globalState)
 }
 
-func RenderDashboardUpdate(dashboardData model.DashboardData, globalState *model.GlobalState) http.Handler {
+func RenderDashboard2(dashboardData model.DashboardData, globalState *model.GlobalState) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		project := r.URL.Query().Get("project")
-		fmt.Printf("PROJECT: %s\n", project)
-
 		globalState.UpdateGlobalStateProject(project)
-		fmt.Printf("GLOBAL STATE: %s\n", *globalState)
-		RenderDashboard(dashboardData, *globalState)
+		templ.Handler(RenderDashboard(dashboardData, *globalState)).ServeHTTP(w, r)
 	})
 }
