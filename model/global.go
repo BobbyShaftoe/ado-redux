@@ -1,9 +1,9 @@
 package model
 
 type GlobalState struct {
-	User           string
-	Projects       []string
-	CurrentProject string
+	User           string   `json:"user"`
+	Projects       []string `json:"projects"`
+	CurrentProject string   `json:"currentProject"`
 }
 
 func NewGlobalState(user string, projects []string) *GlobalState {

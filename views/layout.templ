@@ -19,7 +19,7 @@ templ Layout(globalState model.GlobalState) {
 		<body class="bg-white dark:bg-gray-800">
             @Header(globalState)
             { children... }
-            @Footer()
+            @Footer(globalState)
         </body>
 	</html>
 }

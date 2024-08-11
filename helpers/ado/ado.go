@@ -8,12 +8,12 @@ import (
 )
 
 type GitRepo struct {
-	Name          string
-	Id            uuid.UUID
-	Url           string
-	WebUrl        string
-	Links         interface{}
-	DefaultBranch string
+	Name          string      `json:"name"`
+	Id            uuid.UUID   `json:"id"`
+	Url           string      `json:"url"`
+	WebUrl        string      `json:"webUrl"`
+	Links         interface{} `json:"links"`
+	DefaultBranch string      `json:"defaultBranch"`
 }
 
 func ReturnProjects(responseValue *core.GetProjectsResponseValue) []string {
