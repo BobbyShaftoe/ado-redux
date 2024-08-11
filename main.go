@@ -85,22 +85,36 @@ func main() {
 		Repos:    ado.ReturnGitRepos(responseValue2),
 	}
 
-	//helloData := handlers.HelloData{
-	//	Name: "Nick",
-	//}
+	globalState := model.GlobalState{}
+	globalState.UpdateGlobalState("Nick", ado.ReturnProjects(responseValue))
+	fmt.Println("GLOBAL STATE")
+	fmt.Println(globalState)
+
+	GLOBALState := model.GlobalState{}
+	GLOBALState.UpdateGlobalState("Nick", ado.ReturnProjects(responseValue))
 
 	fs := http.FileServer(http.Dir("static"))
 
-	http.Handle("/", templ.Handler(handlers.RenderIndex()))
+	http.Handle("/", templ.Handler(handlers.RenderIndex(globalState)))
 
-	http.Handle("/hello", templ.Handler(handlers.RenderHello("Nick")))
+	http.Handle("/hello", templ.Handler(handlers.RenderHello(globalState)))
 
-	http.Handle("/dashboard", templ.Handler(handlers.RenderDashboard(dashboardData)))
+	http.Handle("/dashboard", templ.Handler(handlers.RenderDashboard(dashboardData, globalState)))
+
+	http.HandleFunc("/dashboard-update", RenderDashboardUpdate2)
 
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	fmt.Println("Server is running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func RenderDashboardUpdate2(w http.ResponseWriter, r *http.Request)  {
+	project := r.URL.Query().Get("project")
+	fmt.Printf("PROJECT: %s\n", project)
+
+	handlers.RenderDashboard(DashboardData, GLOBALState)))
+
 }
 
 func (envvars *EnvVars) getEnv() {
