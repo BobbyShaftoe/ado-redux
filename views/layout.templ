@@ -1,11 +1,8 @@
 package views
 
-import (
-    "HTTP_Sever/model"
-)
+import "HTTP_Sever/model"
 
 templ Layout(globalState model.GlobalState) {
-
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
@@ -17,9 +14,9 @@ templ Layout(globalState model.GlobalState) {
 			<link rel="stylesheet" href="/static/style.css"/>
 		</head>
 		<body class="bg-white dark:bg-gray-800">
-            @Header(globalState)
-            { children... }
-            @Footer(globalState)
-        </body>
+			@Header(globalState)
+			{ children... }
+			@Footer(globalState)
+		</body>
 	</html>
 }

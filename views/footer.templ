@@ -1,13 +1,9 @@
 package views
 
-import (
-    "HTTP_Sever/model"
-)
+import "HTTP_Sever/model"
 
 templ Footer(globalState model.GlobalState) {
-
-      <footer class="sticky top-[100vh] dark:bg-gray-900">
-      <p class="text-center text-nav-blue dark:text-gray-50">© 2024 ADO Redux | Logged in as <b>{ globalState.User }</b></p>
-      </footer>
-
+	<footer class="sticky top-[100vh] dark:bg-gray-900">
+		<p class="text-center text-nav-blue dark:text-gray-50">© 2024 ADO Redux | Logged in as <b>{ globalState.User }</b></p>
+	</footer>
 }
