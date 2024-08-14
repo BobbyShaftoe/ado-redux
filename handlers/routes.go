@@ -13,21 +13,21 @@ func RenderHello(globalState *model.GlobalState) templ.Component {
 	gs, _ := json.MarshalIndent(globalState, "", "\t")
 	fmt.Println("RenderHello")
 	fmt.Println(string(gs))
-	return views.Hello(*globalState)
+	return views.Hello(globalState)
 }
 
 func RenderIndex(globalState *model.GlobalState) templ.Component {
 	gs, _ := json.MarshalIndent(globalState, "", "\t")
 	fmt.Println("RenderIndex")
 	fmt.Println(string(gs))
-	return views.Index(*globalState)
+	return views.Index(globalState)
 }
 
 func RenderDashboard(dashboardData model.DashboardData, globalState *model.GlobalState) templ.Component {
-	gs, _ := json.MarshalIndent(globalState, "", "\t")
+	gs, _ := json.MarshalIndent(*globalState, "", "\t")
 	fmt.Println("RenderDashboard")
 	fmt.Println(string(gs))
-	return views.Dashboard(dashboardData, *globalState)
+	return views.Dashboard(dashboardData, globalState)
 }
 
 func RenderDashboardUpdateProject(dashboardData model.DashboardData, globalState *model.GlobalState) http.HandlerFunc {

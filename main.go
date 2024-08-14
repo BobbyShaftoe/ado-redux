@@ -22,9 +22,10 @@ type Post struct {
 }
 
 type EnvVars struct {
-	DBPass  string
-	PAT     string
-	PROJECT string
+	DBPass       string
+	PAT          string
+	ORGANIZATION string
+	PROJECT      string
 }
 
 type User struct {
@@ -60,7 +61,7 @@ func main() {
 	envVars := EnvVars{}
 	envVars.getEnv()
 
-	adoClientInfo := handlers.GetADOClientInfo("https://dev.azure.com/"+envVars.PROJECT, envVars.PAT)
+	adoClientInfo := handlers.GetADOClientInfo("https://dev.azure.com/"+envVars.ORGANIZATION, envVars.PAT)
 	fmt.Println(adoClientInfo)
 
 	adoConnection := handlers.NewPATConnection(adoClientInfo)
@@ -88,7 +89,7 @@ func main() {
 	globalState := &model.GlobalState{
 		User:           "Nick",
 		Projects:       ado.ReturnProjects(responseValue),
-		CurrentProject: ado.ReturnProjects(responseValue)[0],
+		CurrentProject: envVars.PROJECT,
 	}
 
 	fmt.Println("GLOBAL STATE")
@@ -110,18 +111,22 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func (envvars *EnvVars) getEnv() {
-	envvars.DBPass = os.Getenv("DB_PASS")
-	envvars.PAT = os.Getenv("AZURE_TOKEN")
-	envvars.PROJECT = os.Getenv("ADO_PROJECT")
+func (envVars *EnvVars) getEnv() {
+	envVars.DBPass = os.Getenv("DB_PASS")
+	envVars.PAT = os.Getenv("AZURE_TOKEN")
+	envVars.ORGANIZATION = os.Getenv("ADO_ORG")
+	envVars.PROJECT = os.Getenv("ADO_DEFAULT_PROJECT")
 
-	if envvars.DBPass == "" {
+	if envVars.DBPass == "" {
 		log.Fatal("DB_PASS environment variable not set")
 	}
-	if envvars.PAT == "" {
+	if envVars.PAT == "" {
 		log.Fatal("AZURE_TOKEN environment variable not set")
 	}
-	if envvars.PROJECT == "" {
-		log.Fatal("PROJECT environment variable not set")
+	if envVars.ORGANIZATION == "" {
+		log.Fatal("ADO_ORG environment variable not set")
+	}
+	if envVars.PROJECT == "" {
+		log.Fatal("ADO_DEFAULT_PROJECT environment variable not set")
 	}
 }
