@@ -2,14 +2,10 @@ package main
 
 import (
 	"HTTP_Sever/handlers"
-	"HTTP_Sever/helpers/ado"
 	"HTTP_Sever/model"
-	"context"
 	"fmt"
 	"github.com/a-h/templ"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
-	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 	"log"
 	"net/http"
 	"os"
@@ -61,34 +57,9 @@ func main() {
 	envVars := EnvVars{}
 	envVars.getEnv()
 
-	adoClientInfo := handlers.GetADOClientInfo("https://dev.azure.com/"+envVars.ORGANIZATION, envVars.PAT)
-	fmt.Println(adoClientInfo)
-
-	adoConnection := handlers.NewPATConnection(adoClientInfo)
-	adoCtx := context.Background()
-	coreClient := handlers.NewADOClient(adoCtx, adoConnection)
-	gitClient := handlers.NewGitClient(adoCtx, adoConnection)
-
-	responseValue, err := coreClient.GetProjects(adoCtx, core.GetProjectsArgs{})
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(ado.ReturnProjects(responseValue))
-
-	responseValue2, err := gitClient.GetRepositories(adoCtx, git.GetRepositoriesArgs{})
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(ado.ReturnGitRepos(responseValue2))
-
-	dashboardData := model.DashboardData{
-		Projects: ado.ReturnProjects(responseValue),
-		Repos:    ado.ReturnGitRepos(responseValue2),
-	}
-
 	globalState := &model.GlobalState{
 		User:           "Nick",
-		Projects:       ado.ReturnProjects(responseValue),
+		Projects:       nil,
 		CurrentProject: envVars.PROJECT,
 	}
 
@@ -101,9 +72,9 @@ func main() {
 
 	http.Handle("/hello", templ.Handler(handlers.RenderHello(globalState)))
 
-	http.Handle("/dashboard", templ.Handler(handlers.RenderDashboard(dashboardData, globalState)))
+	http.Handle("/dashboard", templ.Handler(handlers.RenderDashboard(globalState)))
 
-	http.HandleFunc("/dashboard-update", handlers.RenderDashboardUpdateProject(dashboardData, globalState))
+	http.HandleFunc("/dashboard-update", handlers.RenderDashboardUpdateProject(globalState))
 
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
