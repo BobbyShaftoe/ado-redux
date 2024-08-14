@@ -30,7 +30,7 @@ func RenderDashboard(globalState *model.GlobalState) templ.Component {
 	fmt.Println("RenderDashboard")
 	fmt.Println(string(gs))
 
-	dashboardData := getDashboardData()
+	dashboardData := getDashboardData(globalState)
 	globalState.UpdateGlobalStateProjects(dashboardData.Projects)
 	return views.Dashboard(dashboardData, globalState)
 }
@@ -46,11 +46,11 @@ func RenderDashboardUpdateProject(globalState *model.GlobalState) http.HandlerFu
 	})
 }
 
-func getDashboardData() model.DashboardData {
+func getDashboardData(globalState *model.GlobalState) model.DashboardData {
 	adoCtx := context.Background()
 	adoClients := NewADOClients(adoCtx)
 	projects := adoClients.GetProjects(adoCtx)
-	repositories := adoClients.GetRepositories(adoCtx)
+	repositories := adoClients.GetRepositories(adoCtx, globalState.CurrentProject)
 	dashboardData := model.DashboardData{
 		Projects: ado.ReturnProjects(projects),
 		Repos:    ado.ReturnGitRepos(repositories),
