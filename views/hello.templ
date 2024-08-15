@@ -1,8 +1,10 @@
 package views
 
-templ Hello(helloData string) {
-	@Layout() {
-		<div><p class="text-gray-600 font-sans">Hello { helloData }</p></div>
+import "HTTP_Sever/model"
+
+templ Hello(globalState *model.GlobalState) {
+	@Layout(globalState) {
+		<div><p class="text-gray-600 font-sans">Hello { globalState.User }</p></div>
 		<div><p class="text-gray-800 font-sans">Welcome to Ado User Dashboard Redux</p></div>
 	}
 }

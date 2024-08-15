@@ -2,14 +2,10 @@ package main
 
 import (
 	"HTTP_Sever/handlers"
-	"HTTP_Sever/helpers/ado"
 	"HTTP_Sever/model"
-	"context"
 	"fmt"
 	"github.com/a-h/templ"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
-	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 	"log"
 	"net/http"
 	"os"
@@ -22,9 +18,10 @@ type Post struct {
 }
 
 type EnvVars struct {
-	DBPass  string
-	PAT     string
-	PROJECT string
+	DBPass       string
+	PAT          string
+	ORGANIZATION string
+	PROJECT      string
 }
 
 type User struct {
@@ -60,42 +57,24 @@ func main() {
 	envVars := EnvVars{}
 	envVars.getEnv()
 
-	adoClientInfo := handlers.GetADOClientInfo("https://dev.azure.com/"+envVars.PROJECT, envVars.PAT)
-	fmt.Println(adoClientInfo)
-
-	adoConnection := handlers.NewPATConnection(adoClientInfo)
-	adoCtx := context.Background()
-	coreClient := handlers.NewADOClient(adoCtx, adoConnection)
-	gitClient := handlers.NewGitClient(adoCtx, adoConnection)
-
-	responseValue, err := coreClient.GetProjects(adoCtx, core.GetProjectsArgs{})
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(ado.ReturnProjects(responseValue))
-
-	responseValue2, err := gitClient.GetRepositories(adoCtx, git.GetRepositoriesArgs{})
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(ado.ReturnGitRepos(responseValue2))
-
-	dashboardData := model.DashboardData{
-		Projects: ado.ReturnProjects(responseValue),
-		Repos:    ado.ReturnGitRepos(responseValue2),
+	globalState := &model.GlobalState{
+		User:           "Nick",
+		Projects:       nil,
+		CurrentProject: envVars.PROJECT,
 	}
 
-	//helloData := handlers.HelloData{
-	//	Name: "Nick",
-	//}
+	fmt.Println("GLOBAL STATE")
+	fmt.Println(globalState)
 
 	fs := http.FileServer(http.Dir("static"))
 
-	http.Handle("/", templ.Handler(handlers.RenderIndex()))
+	http.Handle("/", templ.Handler(handlers.RenderIndex(globalState)))
 
-	http.Handle("/hello", templ.Handler(handlers.RenderHello("Nick")))
+	http.Handle("/hello", templ.Handler(handlers.RenderHello(globalState)))
 
-	http.Handle("/dashboard", templ.Handler(handlers.RenderDashboard(dashboardData)))
+	http.Handle("/dashboard", templ.Handler(handlers.RenderDashboard(globalState)))
+
+	http.HandleFunc("/dashboard-update", handlers.RenderDashboardUpdateProject(globalState))
 
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
@@ -103,18 +82,22 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func (envvars *EnvVars) getEnv() {
-	envvars.DBPass = os.Getenv("DB_PASS")
-	envvars.PAT = os.Getenv("AZURE_TOKEN")
-	envvars.PROJECT = os.Getenv("ADO_PROJECT")
+func (envVars *EnvVars) getEnv() {
+	envVars.DBPass = os.Getenv("DB_PASS")
+	envVars.PAT = os.Getenv("AZURE_TOKEN")
+	envVars.ORGANIZATION = os.Getenv("ADO_ORG")
+	envVars.PROJECT = os.Getenv("ADO_DEFAULT_PROJECT")
 
-	if envvars.DBPass == "" {
+	if envVars.DBPass == "" {
 		log.Fatal("DB_PASS environment variable not set")
 	}
-	if envvars.PAT == "" {
+	if envVars.PAT == "" {
 		log.Fatal("AZURE_TOKEN environment variable not set")
 	}
-	if envvars.PROJECT == "" {
-		log.Fatal("PROJECT environment variable not set")
+	if envVars.ORGANIZATION == "" {
+		log.Fatal("ADO_ORG environment variable not set")
+	}
+	if envVars.PROJECT == "" {
+		log.Fatal("ADO_DEFAULT_PROJECT environment variable not set")
 	}
 }

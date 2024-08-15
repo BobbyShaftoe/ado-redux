@@ -1,6 +1,8 @@
 package views
 
-templ Layout() {
+import "HTTP_Sever/model"
+
+templ Layout(globalState *model.GlobalState) {
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
@@ -12,9 +14,9 @@ templ Layout() {
 			<link rel="stylesheet" href="/static/style.css"/>
 		</head>
 		<body class="bg-white dark:bg-gray-800">
-            @Header()
-            { children... }
-            @Footer()
-        </body>
+			@Header(globalState)
+			{ children... }
+			@Footer(globalState)
+		</body>
 	</html>
 }

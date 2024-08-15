@@ -5,10 +5,10 @@ import (
 )
 
 type HelloData struct {
-	Name string
+	Name string `json:"name"`
 }
 
 type DashboardData struct {
-	Projects []string
-	Repos    []ado.GitRepo
+	Projects []string      `json:"projects"`
+	Repos    []ado.GitRepo `json:"repos"`
 }

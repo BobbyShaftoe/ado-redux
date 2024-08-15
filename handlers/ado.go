@@ -1,51 +1,68 @@
 package handlers
 
 import (
+	"HTTP_Sever/model"
 	"context"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 	"log"
+	"os"
 )
 
-type ADOClientInfo struct {
-	organizationUrl     string
-	personalAccessToken string
+type ADOClients struct {
+	coreClient core.Client
+	gitClient  git.Client
 }
 
-type SimpleADOConnection struct{}
+type ADORequests interface {
+	GetProjects(ctx context.Context, coreClient core.Client) *core.GetProjectsResponseValue
+	GetRepositories(ctx context.Context, gitClient git.Client) *[]git.GitRepository
+}
 
-func GetADOClientInfo(organizationUrl string, personalAccessToken string) ADOClientInfo {
-	adoClientInfo := ADOClientInfo{
-		organizationUrl:     organizationUrl,
-		personalAccessToken: personalAccessToken,
+func GetADOClientInfo() model.ADOConnectionInfo {
+	adoConnectionInfo := model.ADOConnectionInfo{
+		ConnectionUrl: "https://dev.azure.com/" + os.Getenv("ADO_ORG"),
+		ConnectionPAT: os.Getenv("AZURE_TOKEN"),
 	}
-	return adoClientInfo
+	return adoConnectionInfo
 }
 
-func (c SimpleADOConnection) NewPATConnection(organizationUrl string, personalAccessToken string) *azuredevops.Connection {
-	adoClientInfo := GetADOClientInfo(organizationUrl, personalAccessToken)
-	connection := azuredevops.NewPatConnection(adoClientInfo.organizationUrl, adoClientInfo.personalAccessToken)
+func NewPATConnection() *azuredevops.Connection {
+	adoClientInfo := GetADOClientInfo()
+	connection := azuredevops.NewPatConnection(adoClientInfo.ConnectionUrl, adoClientInfo.ConnectionPAT)
 	return connection
 }
 
-func NewPATConnection(adoClientInfo ADOClientInfo) *azuredevops.Connection {
-	connection := azuredevops.NewPatConnection(adoClientInfo.organizationUrl, adoClientInfo.personalAccessToken)
-	return connection
-}
+func NewADOClients(ctx context.Context) *ADOClients {
+	patConnection := NewPATConnection()
 
-func NewADOClient(ctx context.Context, connection *azuredevops.Connection) core.Client {
-	coreClient, err := core.NewClient(ctx, connection)
+	coreClient, err := core.NewClient(ctx, patConnection)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return coreClient
-}
-
-func NewGitClient(ctx context.Context, connection *azuredevops.Connection) git.Client {
-	gitClient, err := git.NewClient(ctx, connection)
+	gitClient, err := git.NewClient(ctx, patConnection)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return gitClient
+	return &ADOClients{
+		coreClient: coreClient,
+		gitClient:  gitClient,
+	}
+}
+
+func (adoClients ADOClients) GetProjects(ctx context.Context) *core.GetProjectsResponseValue {
+	responseValue, err := adoClients.coreClient.GetProjects(ctx, core.GetProjectsArgs{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return responseValue
+}
+
+func (adoClients ADOClients) GetRepositories(ctx context.Context, project string) *[]git.GitRepository {
+	responseValue, err := adoClients.gitClient.GetRepositories(ctx, git.GetRepositoriesArgs{Project: &project})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return responseValue
 }
