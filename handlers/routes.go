@@ -38,11 +38,14 @@ func RenderDashboard(globalState *model.GlobalState) templ.Component {
 func RenderDashboardUpdateProject(globalState *model.GlobalState) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		project := r.URL.Query().Get("project")
-		globalState.UpdateGlobalStateProject(project)
 		gs, _ := json.MarshalIndent(globalState, "", "\t")
 		fmt.Println("RenderDashboardUpdateProject")
 		fmt.Println(string(gs))
-		templ.Handler(RenderDashboard(&*globalState)).ServeHTTP(w, r)
+
+		globalState.UpdateGlobalStateProject(project)
+		dashboardData := getDashboardData(globalState)
+		templ.Handler(views.DashboardContent(dashboardData, globalState)).ServeHTTP(w, r)
+		//templ.Handler(views.DashboardContent(dashboardData, globalState)).ServeHTTP(w, r)
 	})
 }
 
