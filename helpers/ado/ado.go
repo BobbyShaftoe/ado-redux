@@ -1,11 +1,26 @@
 package ado
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
-	"log"
+	"log/slog"
+	"os"
 )
+
+type localLogger struct {
+	json *slog.Logger
+}
+
+var logger = &localLogger{
+	json: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+}
+
+func fatal(v ...any) {
+	logger.json.Error("main", "err", fmt.Sprint(v...))
+	os.Exit(1)
+}
 
 type GitRepo struct {
 	Name          string      `json:"name"`
@@ -21,7 +36,7 @@ func ReturnProjects(responseValue *core.GetProjectsResponseValue) []string {
 	index := 0
 	// Log the page of team project names
 	for _, teamProjectReference := range (*responseValue).Value {
-		log.Printf("Project Name[%v] = %v", index, *teamProjectReference.Name)
+		logger.json.Info("main", "index", index, "projectName", *teamProjectReference.Name)
 		Projects = append(Projects, *teamProjectReference.Name)
 		index++
 	}
@@ -33,7 +48,7 @@ func ReturnGitRepos(responseValue *[]git.GitRepository) []GitRepo {
 	index := 0
 	// Log the page of team project names
 	for _, gitRepository := range *responseValue {
-		log.Printf("Repository Name[%v] = %v", index, *gitRepository.Name)
+		logger.json.Info("main", "index", index, "gitRepository", *gitRepository.Name)
 		Repositories = append(Repositories, GitRepo{
 			Name:          *gitRepository.Name,
 			Id:            *gitRepository.Id,

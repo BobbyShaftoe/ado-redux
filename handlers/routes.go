@@ -5,30 +5,32 @@ import (
 	"HTTP_Sever/model"
 	"HTTP_Sever/views"
 	"context"
-	"encoding/json"
-	"fmt"
 	"github.com/a-h/templ"
+	"log/slog"
 	"net/http"
+	"os"
 )
 
+type localLogger struct {
+	json *slog.Logger
+}
+
+var logger = &localLogger{
+	json: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+}
+
 func RenderHello(globalState *model.GlobalState) templ.Component {
-	gs, _ := json.MarshalIndent(globalState, "", "\t")
-	fmt.Println("RenderHello")
-	fmt.Println(string(gs))
+	logger.json.Info("RenderHello", "globalState", globalState)
 	return views.Hello(globalState)
 }
 
 func RenderIndex(globalState *model.GlobalState) templ.Component {
-	gs, _ := json.MarshalIndent(globalState, "", "\t")
-	fmt.Println("RenderIndex")
-	fmt.Println(string(gs))
+	logger.json.Info("RenderIndex", "globalState", globalState)
 	return views.Index(globalState)
 }
 
 func RenderDashboard(globalState *model.GlobalState) templ.Component {
-	gs, _ := json.MarshalIndent(*globalState, "", "\t")
-	fmt.Println("RenderDashboard")
-	fmt.Println(string(gs))
+	logger.json.Info("RenderDashboard", "globalState", globalState)
 
 	dashboardData := getDashboardData(globalState)
 	globalState.UpdateGlobalStateProjects(dashboardData.Projects)
@@ -38,14 +40,11 @@ func RenderDashboard(globalState *model.GlobalState) templ.Component {
 func RenderDashboardUpdateProject(globalState *model.GlobalState) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		project := r.URL.Query().Get("project")
-		gs, _ := json.MarshalIndent(globalState, "", "\t")
-		fmt.Println("RenderDashboardUpdateProject")
-		fmt.Println(string(gs))
+		logger.json.Info("RenderDashboardUpdateProject", "globalState", globalState)
 
 		globalState.UpdateGlobalStateProject(project)
 		dashboardData := getDashboardData(globalState)
 		templ.Handler(views.DashboardContent(dashboardData, globalState)).ServeHTTP(w, r)
-		//templ.Handler(views.DashboardContent(dashboardData, globalState)).ServeHTTP(w, r)
 	})
 }
 
@@ -58,5 +57,6 @@ func getDashboardData(globalState *model.GlobalState) model.DashboardData {
 		Projects: ado.ReturnProjects(projects),
 		Repos:    ado.ReturnGitRepos(repositories),
 	}
+	logger.json.Info("getDashboardData", "dashboardData", dashboardData, "globalState", globalState)
 	return dashboardData
 }
