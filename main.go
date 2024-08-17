@@ -2,6 +2,7 @@ package main
 
 import (
 	"HTTP_Sever/handlers"
+	"HTTP_Sever/helpers/config"
 	"HTTP_Sever/model"
 	"fmt"
 	"github.com/a-h/templ"
@@ -25,13 +26,6 @@ func fatal(v ...any) {
 	os.Exit(1)
 }
 
-type EnvVars struct {
-	DBPass       string
-	PAT          string
-	ORGANIZATION string
-	PROJECT      string
-}
-
 const (
 	host   = "localhost"
 	port   = 5432
@@ -45,11 +39,10 @@ var (
 )
 
 func main() {
-	envVars := EnvVars{}
-	envVars.getEnv()
+	envVars := config.New()
 
 	globalState := &model.GlobalState{
-		User:           "Nick",
+		User:           envVars.USER,
 		Projects:       nil,
 		CurrentProject: envVars.PROJECT,
 	}
@@ -68,26 +61,6 @@ func main() {
 
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	logger.json.Info("main", "msg", "Starting server at http://localhost:8080")
+	logger.json.Info("main", "status", "Starting server at http://localhost:8080")
 	fatal(http.ListenAndServe(":8080", nil))
-}
-
-func (envVars *EnvVars) getEnv() {
-	envVars.DBPass = os.Getenv("DB_PASS")
-	envVars.PAT = os.Getenv("AZURE_TOKEN")
-	envVars.ORGANIZATION = os.Getenv("ADO_ORG")
-	envVars.PROJECT = os.Getenv("ADO_DEFAULT_PROJECT")
-
-	if envVars.DBPass == "" {
-		fatal("DB_PASS environment variable not set")
-	}
-	if envVars.PAT == "" {
-		fatal("AZURE_TOKEN environment variable not set")
-	}
-	if envVars.ORGANIZATION == "" {
-		fatal("ADO_ORG environment variable not set")
-	}
-	if envVars.PROJECT == "" {
-		fatal("ADO_DEFAULT_PROJECT environment variable not set")
-	}
 }

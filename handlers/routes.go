@@ -6,18 +6,8 @@ import (
 	"HTTP_Sever/views"
 	"context"
 	"github.com/a-h/templ"
-	"log/slog"
 	"net/http"
-	"os"
 )
-
-type localLogger struct {
-	json *slog.Logger
-}
-
-var logger = &localLogger{
-	json: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
-}
 
 func RenderHello(globalState *model.GlobalState) templ.Component {
 	logger.json.Info("RenderHello", "globalState", globalState)
@@ -50,9 +40,12 @@ func RenderDashboardUpdateProject(globalState *model.GlobalState) http.HandlerFu
 
 func getDashboardData(globalState *model.GlobalState) model.DashboardData {
 	adoCtx := context.Background()
-	adoClients := NewADOClients(adoCtx)
-	projects := adoClients.GetProjects(adoCtx)
-	repositories := adoClients.GetRepositories(adoCtx, globalState.CurrentProject)
+
+	projects := NewADOClients(adoCtx).GetProjects(adoCtx)
+	repositories := NewADOClients(adoCtx).GetRepositories(adoCtx, globalState.CurrentProject)
+	users := NewADOClients(adoCtx).ListUsers(adoCtx, globalState.CurrentProject)
+
+	logger.json.Info("getDashboardData", "users", users)
 	dashboardData := model.DashboardData{
 		Projects: ado.ReturnProjects(projects),
 		Repos:    ado.ReturnGitRepos(repositories),

@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/graph"
 	"log/slog"
 	"os"
 )
@@ -36,7 +37,7 @@ func ReturnProjects(responseValue *core.GetProjectsResponseValue) []string {
 	index := 0
 	// Log the page of team project names
 	for _, teamProjectReference := range (*responseValue).Value {
-		logger.json.Info("main", "index", index, "projectName", *teamProjectReference.Name)
+		logger.json.Info("ReturnProjects", "index", index, "projectName", *teamProjectReference.Name)
 		Projects = append(Projects, *teamProjectReference.Name)
 		index++
 	}
@@ -48,7 +49,7 @@ func ReturnGitRepos(responseValue *[]git.GitRepository) []GitRepo {
 	index := 0
 	// Log the page of team project names
 	for _, gitRepository := range *responseValue {
-		logger.json.Info("main", "index", index, "gitRepository", *gitRepository.Name)
+		logger.json.Info("ReturnGitRepos", "index", index, "gitRepository", *gitRepository.Name)
 		Repositories = append(Repositories, GitRepo{
 			Name:          *gitRepository.Name,
 			Id:            *gitRepository.Id,
@@ -60,4 +61,12 @@ func ReturnGitRepos(responseValue *[]git.GitRepository) []GitRepo {
 		index++
 	}
 	return Repositories
+}
+
+func validateUser(user string, userGraph *[]graph.GraphUser) bool {
+	for _, graphUser := range *userGraph {
+		if *graphUser.MailAddress == user {
+		}
+	}
+	return false
 }
