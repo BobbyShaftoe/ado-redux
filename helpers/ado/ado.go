@@ -63,9 +63,12 @@ func ReturnGitRepos(responseValue *[]git.GitRepository) []GitRepo {
 	return Repositories
 }
 
-func validateUser(user string, userGraph *[]graph.GraphUser) bool {
+func ValidateUser(user string, userGraph *[]graph.GraphUser) bool {
+	logger.json.Info("ValidateUser", "users", userGraph)
 	for _, graphUser := range *userGraph {
+		logger.json.Info("ValidateUser", "user", user, "graphUser", *graphUser.MailAddress)
 		if *graphUser.MailAddress == user {
+			return true
 		}
 	}
 	return false

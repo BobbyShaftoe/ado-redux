@@ -2,8 +2,10 @@ package main
 
 import (
 	"HTTP_Sever/handlers"
+	"HTTP_Sever/helpers/ado"
 	"HTTP_Sever/helpers/config"
 	"HTTP_Sever/model"
+	"context"
 	"fmt"
 	"github.com/a-h/templ"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -41,8 +43,13 @@ var (
 func main() {
 	envVars := config.New()
 
+	adoCtx := context.Background()
+
+	userValidated := ado.ValidateUser(envVars.USER, handlers.NewADOClients(adoCtx).ListUsers(adoCtx, envVars.PROJECT))
+
 	globalState := &model.GlobalState{
 		User:           envVars.USER,
+		UserValidated:  userValidated,
 		Projects:       nil,
 		CurrentProject: envVars.PROJECT,
 	}

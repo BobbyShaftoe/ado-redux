@@ -28,14 +28,14 @@ func RenderDashboard(globalState *model.GlobalState) templ.Component {
 }
 
 func RenderDashboardUpdateProject(globalState *model.GlobalState) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		project := r.URL.Query().Get("project")
 		logger.json.Info("RenderDashboardUpdateProject", "globalState", globalState)
 
 		globalState.UpdateGlobalStateProject(project)
 		dashboardData := getDashboardData(globalState)
 		templ.Handler(views.DashboardContent(dashboardData, globalState)).ServeHTTP(w, r)
-	})
+	}
 }
 
 func getDashboardData(globalState *model.GlobalState) model.DashboardData {
@@ -43,9 +43,7 @@ func getDashboardData(globalState *model.GlobalState) model.DashboardData {
 
 	projects := NewADOClients(adoCtx).GetProjects(adoCtx)
 	repositories := NewADOClients(adoCtx).GetRepositories(adoCtx, globalState.CurrentProject)
-	users := NewADOClients(adoCtx).ListUsers(adoCtx, globalState.CurrentProject)
 
-	logger.json.Info("getDashboardData", "users", users)
 	dashboardData := model.DashboardData{
 		Projects: ado.ReturnProjects(projects),
 		Repos:    ado.ReturnGitRepos(repositories),
