@@ -42,10 +42,11 @@ var (
 
 func main() {
 	envVars := config.New()
-
 	adoCtx := context.Background()
-
-	userValidated := ado.ValidateUser(envVars.USER, handlers.NewADOClients(adoCtx).ListUsers(adoCtx, envVars.PROJECT))
+	userValidated := ado.ValidateUser(
+		envVars.USER,
+		handlers.NewADOClients(adoCtx).
+			ListUsers(adoCtx, envVars.PROJECT))
 
 	globalState := &model.GlobalState{
 		User:           envVars.USER,

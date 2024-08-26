@@ -63,13 +63,38 @@ func ReturnGitRepos(responseValue *[]git.GitRepository) []GitRepo {
 	return Repositories
 }
 
+func ReturnGitRepoNames(gitRepositories *[]git.GitRepository) []string {
+	var repositories []string
+	index := 0
+	for _, gitRepository := range *gitRepositories {
+		logger.json.Info("ReturnGitRepos", "index", index, "gitRepository", *gitRepository.Name)
+		repositories = append(repositories, *gitRepository.Name)
+		index++
+	}
+	return repositories
+}
+
 func ValidateUser(user string, userGraph *[]graph.GraphUser) bool {
 	logger.json.Info("ValidateUser", "users", userGraph)
 	for _, graphUser := range *userGraph {
 		logger.json.Info("ValidateUser", "user", user, "graphUser", *graphUser.MailAddress)
-		if *graphUser.MailAddress == user {
+		if *graphUser.PrincipalName == user || *graphUser.MailAddress == user {
 			return true
 		}
 	}
 	return false
 }
+
+//func ReturnGitCommitCriteria(globalState *model.GlobalState) *model.GitCommitsCriteria {
+//	return &model.GitCommitsCriteria{
+//		//RepositoryId: "",
+//		Author: globalState.User,
+//		User:   globalState.User,
+//		//FromDate:     "",
+//		//Version:      "",
+//		//VersionType:  "",
+//		//Skip:         0,
+//		//Stop:         0,
+//	}
+//
+//}

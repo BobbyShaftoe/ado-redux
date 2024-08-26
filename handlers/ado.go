@@ -75,6 +75,91 @@ func (adoClients ADOClients) GetRepositories(ctx context.Context, project string
 	return responseValue
 }
 
+func ReturnGitCommitCriteria(globalState *model.GlobalState) *model.GitCommitsCriteria {
+	return &model.GitCommitsCriteria{
+		//RepositoryId: "",
+		Author:      globalState.User,
+		User:        globalState.User,
+		FromDate:    "6/14/2018 12:00:00 AM",
+		Version:     "",
+		VersionType: "",
+		Skip:        0,
+		Top:         3,
+	}
+
+}
+
+func (adoClients ADOClients) GetCommits(ctx context.Context, gitCommitsCriteria *model.GitCommitsCriteria, globalState *model.GlobalState, repositories []string) []model.GitCommitItem {
+	var True = true
+	var allCommits []model.GitCommitItem
+
+	//var gitVersionDescriptor = git.GitVersionDescriptor{
+	//	Version:        &gitCommitsCriteria.Version,
+	//	VersionOptions: nil,
+	//	VersionType:    (*git.GitVersionType)(&gitCommitsCriteria.VersionType),
+	//}
+
+	//mu := sync.Mutex{}
+	//wg := sync.WaitGroup{}
+
+	for _, repo := range repositories {
+		gitCommitsCriteria.RepositoryId = repo
+
+		responseValue, err := adoClients.gitClient.GetCommits(ctx, git.GetCommitsArgs{
+			Project:      &globalState.CurrentProject,
+			RepositoryId: &gitCommitsCriteria.RepositoryId,
+			SearchCriteria: &git.GitQueryCommitsCriteria{
+				Skip:                &gitCommitsCriteria.Skip,
+				Top:                 &gitCommitsCriteria.Top,
+				Author:              &gitCommitsCriteria.Author,
+				CompareVersion:      nil,
+				ExcludeDeletes:      &True,
+				FromCommitId:        nil,
+				FromDate:            &gitCommitsCriteria.FromDate,
+				HistoryMode:         nil,
+				Ids:                 nil,
+				IncludeLinks:        &True,
+				IncludePushData:     &True,
+				IncludeUserImageUrl: nil,
+				IncludeWorkItems:    &True,
+				ItemPath:            nil,
+				ItemVersion:         nil,
+				//ItemVersion:            &gitVersionDescriptor,
+				ShowOldestCommitsFirst: nil,
+				ToCommitId:             nil,
+				ToDate:                 nil,
+				User:                   nil,
+			},
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		responseCommits := responseValue
+		if len(*responseCommits) == 0 {
+			continue
+		}
+
+		allCommits = append(allCommits, model.GitCommitItem{
+			Repository: repo,
+			CommitInfo: *responseValue,
+		})
+	}
+	return allCommits
+}
+
+func (adoClients ADOClients) GetPush(ctx context.Context, repository string, pushId int, globalState *model.GlobalState) *git.GitPush {
+	responseValue, err := adoClients.gitClient.GetPush(ctx, git.GetPushArgs{
+		Project:      &globalState.CurrentProject,
+		RepositoryId: &repository,
+		PushId:       &pushId,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return responseValue
+}
+
 func (adoClients ADOClients) ListUsers(ctx context.Context, project string) *[]graph.GraphUser {
 	subjectTypes := &[]string{"msa", "aad"}
 	//scopeDescriptor := project
