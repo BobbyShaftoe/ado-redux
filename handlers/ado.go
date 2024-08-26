@@ -9,6 +9,7 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/graph"
 	"log"
+	"sync"
 )
 
 type ADOClients struct {
@@ -89,7 +90,7 @@ func ReturnGitCommitCriteria(globalState *model.GlobalState) *model.GitCommitsCr
 
 }
 
-func (adoClients ADOClients) GetCommits(ctx context.Context, gitCommitsCriteria *model.GitCommitsCriteria, globalState *model.GlobalState, repositories []string) []model.GitCommitItem {
+func (adoClients ADOClients) GetCommits(ctx context.Context, gcc *model.GitCommitsCriteria, globalState *model.GlobalState, repositories []string) []model.GitCommitItem {
 	var True = true
 	var allCommits []model.GitCommitItem
 
@@ -99,52 +100,76 @@ func (adoClients ADOClients) GetCommits(ctx context.Context, gitCommitsCriteria 
 	//	VersionType:    (*git.GitVersionType)(&gitCommitsCriteria.VersionType),
 	//}
 
-	//mu := sync.Mutex{}
-	//wg := sync.WaitGroup{}
+	mu := sync.Mutex{}
+	wg := sync.WaitGroup{}
 
 	for _, repo := range repositories {
-		gitCommitsCriteria.RepositoryId = repo
+		wg.Add(1)
 
-		responseValue, err := adoClients.gitClient.GetCommits(ctx, git.GetCommitsArgs{
-			Project:      &globalState.CurrentProject,
-			RepositoryId: &gitCommitsCriteria.RepositoryId,
-			SearchCriteria: &git.GitQueryCommitsCriteria{
-				Skip:                &gitCommitsCriteria.Skip,
-				Top:                 &gitCommitsCriteria.Top,
-				Author:              &gitCommitsCriteria.Author,
-				CompareVersion:      nil,
-				ExcludeDeletes:      &True,
-				FromCommitId:        nil,
-				FromDate:            &gitCommitsCriteria.FromDate,
-				HistoryMode:         nil,
-				Ids:                 nil,
-				IncludeLinks:        &True,
-				IncludePushData:     &True,
-				IncludeUserImageUrl: nil,
-				IncludeWorkItems:    &True,
-				ItemPath:            nil,
-				ItemVersion:         nil,
-				//ItemVersion:            &gitVersionDescriptor,
-				ShowOldestCommitsFirst: nil,
-				ToCommitId:             nil,
-				ToDate:                 nil,
-				User:                   nil,
-			},
-		})
-		if err != nil {
-			log.Fatal(err)
-		}
+		go func(repo string) {
+			defer wg.Done()
 
-		responseCommits := responseValue
-		if len(*responseCommits) == 0 {
-			continue
-		}
+			gitCommitsCriteria := model.GitCommitsCriteria{
+				Author:      gcc.Author,
+				User:        gcc.User,
+				FromDate:    gcc.FromDate,
+				Version:     gcc.Version,
+				VersionType: gcc.VersionType,
+				Skip:        gcc.Skip,
+				Top:         gcc.Top,
+			}
 
-		allCommits = append(allCommits, model.GitCommitItem{
-			Repository: repo,
-			CommitInfo: *responseValue,
-		})
+			gitCommitsCriteria.RepositoryId = repo
+
+			responseValue, err := adoClients.gitClient.GetCommits(ctx, git.GetCommitsArgs{
+				Project:      &globalState.CurrentProject,
+				RepositoryId: &gitCommitsCriteria.RepositoryId,
+				SearchCriteria: &git.GitQueryCommitsCriteria{
+					Skip:                &gitCommitsCriteria.Skip,
+					Top:                 &gitCommitsCriteria.Top,
+					Author:              &gitCommitsCriteria.Author,
+					CompareVersion:      nil,
+					ExcludeDeletes:      &True,
+					FromCommitId:        nil,
+					FromDate:            &gitCommitsCriteria.FromDate,
+					HistoryMode:         nil,
+					Ids:                 nil,
+					IncludeLinks:        &True,
+					IncludePushData:     &True,
+					IncludeUserImageUrl: nil,
+					IncludeWorkItems:    &True,
+					ItemPath:            nil,
+					ItemVersion:         nil,
+					//ItemVersion:            &gitVersionDescriptor,
+					ShowOldestCommitsFirst: nil,
+					ToCommitId:             nil,
+					ToDate:                 nil,
+					User:                   nil,
+				},
+			})
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			responseCommits := responseValue
+			if len(*responseCommits) == 0 {
+				return
+			}
+
+			logger.json.Info("GetCommits", "gitCommitsCriteria", gitCommitsCriteria)
+
+			mu.Lock()
+			allCommits = append(allCommits, model.GitCommitItem{
+				Repository: repo,
+				CommitInfo: *responseCommits,
+			})
+			mu.Unlock()
+
+		}(repo)
+
 	}
+	wg.Wait()
+
 	return allCommits
 }
 

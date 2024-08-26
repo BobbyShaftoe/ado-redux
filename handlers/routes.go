@@ -47,13 +47,13 @@ func getDashboardData(globalState *model.GlobalState) model.DashboardData {
 	commitsCriteria := ReturnGitCommitCriteria(globalState)
 	commits := NewADOClients(adoCtx).GetCommits(adoCtx, commitsCriteria, globalState, repositories)
 
-	logger.json.Info("getDashboardData", "commitsCriteria", commitsCriteria, "commits", commits)
+	//logger.json.Info("getDashboardData", "commitsCriteria", commitsCriteria, "commits", commits)
 
 	dashboardData := model.DashboardData{
 		Projects: ado.ReturnProjects(projects),
 		Repos:    ado.ReturnGitRepos(repoNames),
 		Commits:  commits,
 	}
-	logger.json.Info("getDashboardData", "dashboardData", dashboardData, "globalState", globalState)
+	//logger.json.Info("getDashboardData", "dashboardData", dashboardData, "globalState", globalState)
 	return dashboardData
 }
