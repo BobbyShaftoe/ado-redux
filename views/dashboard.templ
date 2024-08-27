@@ -14,6 +14,9 @@ func getString(inputString *string) string {
 
 templ Dashboard(dashboardData model.DashboardData, globalState *model.GlobalState) {
 	@Layout(globalState) {
+	<div id="indicator" class="absolute right-1/2 top-1/4 transform translate-x-1/2 translate-y-1/2 opacity-50 z-50">
+	    <img class="htmx-indicator h-48" src="/static/gear-spinner.svg"/>
+	 </div>
 	<div id="dashboard-main">
 		@DashboardContent(dashboardData, globalState)
 	</div>
@@ -33,7 +36,7 @@ templ DashboardContent(dashboardData model.DashboardData, globalState *model.Glo
                             Repositories
                         </div>
 
-                        <div class="text-gray-800 dark:text-nav-blue-lightest font-sans mb-1 pr-2 py-0 z-50">
+                        <div class="text-gray-800 dark:text-nav-blue-lightest font-sans mb-1 pr-2 py-0 z-40">
                             @datePickerAdvanced()
                         </div>
          			</div>

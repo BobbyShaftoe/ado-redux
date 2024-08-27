@@ -89,7 +89,7 @@ templ Header(globalState *model.GlobalState) {
 					>
 						<div class="p-1 mt-1 bg-white dark:bg-button-blue border rounded shadow-md border-neutral-200/70 dark:border-button-blue-dark text-neutral-700 dark:text-neutral-200">
 							for _, project := range globalState.Projects {
-								<div hx-get={ templ.EscapeString("/dashboard-update?project=" + templ.EscapeString(project)) } hx-target="#dashboard-main" hx-swap="innerHTML"
+								<div hx-get={ templ.EscapeString("/dashboard-update?project=" + templ.EscapeString(project)) } hx-target="#dashboard-main" hx-swap="innerHTML" hx-indicator="#indicator"
 								class="relative flex cursor-default select-none hover:bg-neutral-200 dark:hover:bg-nav-blue items-center rounded px-2 py-1.5 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
 									<span>{ project }</span>
 									<span class="ml-auto text-xs tracking-widest opacity-60">⇧⌘P</span>
