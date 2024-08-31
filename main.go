@@ -59,15 +59,19 @@ func main() {
 
 	fs := http.FileServer(http.Dir("static"))
 
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
 	http.Handle("/", templ.Handler(handlers.RenderIndex(globalState)))
 
 	http.Handle("/hello", templ.Handler(handlers.RenderHello(globalState)))
 
-	http.Handle("/dashboard", templ.Handler(handlers.RenderDashboard(globalState)))
+	http.HandleFunc("/dashboard", handlers.RenderDashboardHandler(globalState))
+
+	http.HandleFunc("/repositories", handlers.RenderRepositoriesHandler(globalState))
 
 	http.HandleFunc("/dashboard-update", handlers.RenderDashboardUpdateProject(globalState))
 
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	http.HandleFunc("/repositories-update", handlers.RenderRepositoriesUpdateProject(globalState))
 
 	logger.json.Info("main", "status", "Starting server at http://localhost:8080")
 	fatal(http.ListenAndServe(":8080", nil))

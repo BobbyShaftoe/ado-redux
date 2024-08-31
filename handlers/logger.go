@@ -16,7 +16,7 @@ var handlerOpts = &slog.HandlerOptions{
 }
 
 var logger = &localLogger{
-	json:  slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+	json:  slog.New(slog.NewJSONHandler(os.Stdout, handlerOpts)),
 	jsonf: slog.New(slog.NewJSONHandler(os.Stdout, handlerOpts)),
 }
 

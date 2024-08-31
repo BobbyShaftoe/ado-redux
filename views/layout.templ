@@ -2,7 +2,7 @@ package views
 
 import "HTTP_Sever/model"
 
-templ Layout(globalState *model.GlobalState) {
+templ Layout(globalState *model.GlobalState, page string) {
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
@@ -15,7 +15,7 @@ templ Layout(globalState *model.GlobalState) {
 			<link rel="stylesheet" href="/static/tooltip.css"/>
 		</head>
 		<body class="bg-gray-100 dark:bg-gray-800">
-			@Header(globalState)
+			@Header(globalState, page)
 			{ children... }
 			@Footer(globalState)
 		</body>
