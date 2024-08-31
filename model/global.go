@@ -1,10 +1,11 @@
 package model
 
 type GlobalState struct {
-	User           string   `json:"user"`
-	UserValidated  bool     `json:"userValidated"`
-	Projects       []string `json:"projects"`
-	CurrentProject string   `json:"currentProject"`
+	User            string   `json:"user"`
+	AdditionalUsers []string `json:"additionalUsers"`
+	UserValidated   bool     `json:"userValidated"`
+	Projects        []string `json:"projects"`
+	CurrentProject  string   `json:"currentProject"`
 }
 
 func NewGlobalState(user string, projects []string) *GlobalState {
