@@ -63,8 +63,6 @@ func main() {
 
 	http.Handle("/", templ.Handler(handlers.RenderIndex(globalState)))
 
-	http.Handle("/hello", templ.Handler(handlers.RenderHello(globalState)))
-
 	http.HandleFunc("/dashboard", handlers.RenderDashboardHandler(globalState))
 
 	http.HandleFunc("/repositories", handlers.RenderRepositoriesHandler(globalState))

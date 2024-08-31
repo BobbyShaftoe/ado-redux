@@ -11,11 +11,6 @@ import (
 	"regexp"
 )
 
-func RenderHello(globalState *model.GlobalState) templ.Component {
-	logger.json.Debug("RenderHello", "globalState", globalState)
-	return views.Hello(globalState)
-}
-
 func RenderIndex(globalState *model.GlobalState) templ.Component {
 	logger.json.Debug("RenderIndex", "globalState", globalState)
 	return views.Index(globalState)
@@ -62,7 +57,6 @@ func filterDashboard(dashboardData string, search string) model.DashboardData {
 			filteredDashboardCommitItems = append(filteredDashboardCommitItems, commit)
 		}
 	}
-
 	dashboardStruct.Commits = filteredDashboardCommitItems
 	return dashboardStruct
 }
@@ -84,7 +78,6 @@ func filterRepositories(repositoriesData string, search string) model.Repositori
 			filteredRepos = append(filteredRepos, repo)
 		}
 	}
-
 	repositoriesStruct.Repos = filteredRepos
 	return repositoriesStruct
 }
