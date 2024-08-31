@@ -12,7 +12,7 @@ func navHighlight(page string, current string) string {
 }
 
 func currentPageJSON(page string, modelData interface{}) string {
-    pageMap := map[string]interface{}{
+    pageMap := map[string]any{
         "pageContext": page,
         "modelData": modelData,
     }
@@ -48,7 +48,7 @@ templ Header[T model.RepositoriesData | model.DashboardData | string](globalStat
 					<input
 					type="search"
 					id="search-navbar"
-					class="block w-64 p-1 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search..."
+					class="block w-64 p-1 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Filter results..."
 					name="search"
 					hx-post={ templ.EscapeString("/search") }
 					hx-vals={ currentPageJSON(page, modelData) }

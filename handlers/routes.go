@@ -5,8 +5,10 @@ import (
 	"HTTP_Sever/model"
 	"HTTP_Sever/views"
 	"context"
+	"encoding/json"
 	"github.com/a-h/templ"
 	"net/http"
+	"regexp"
 )
 
 func RenderHello(globalState *model.GlobalState) templ.Component {
@@ -21,11 +23,70 @@ func RenderIndex(globalState *model.GlobalState) templ.Component {
 
 func HandleSearch(globalState *model.GlobalState) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logger.json.Info("HandleSearch", "search", r.FormValue("search"), "page", r.FormValue("modelData"))
+		logger.json.Info("HandleSearch", "search", r.FormValue("search"))
 
-		dashboardData := getDashboardData(globalState)
-		templ.Handler(views.DashboardContent(dashboardData, globalState)).ServeHTTP(w, r)
+		currentPage := r.FormValue("pageContext")
+		pageData := r.FormValue("modelData")
+		searchTerm := r.FormValue("search")
+
+		if currentPage == "repositories" {
+			logger.json.Info("HandleSearch", "match", "repositories", "page", currentPage)
+			repositoriesData := filterRepositories(pageData, searchTerm)
+			templ.Handler(views.RepositoriesContent(repositoriesData, globalState)).ServeHTTP(w, r)
+		}
+
+		if currentPage == "dashboard" {
+			logger.json.Info("HandleSearch", "match", "dashboard", "page", currentPage)
+			dashboardData := filterDashboard(pageData, searchTerm)
+			templ.Handler(views.DashboardContent(dashboardData, globalState)).ServeHTTP(w, r)
+
+		}
 	}
+}
+
+func filterDashboard(dashboardData string, search string) model.DashboardData {
+	dashboardStruct := model.DashboardData{}
+	dashboardBytes := []byte(dashboardData)
+	_ = json.Unmarshal(dashboardBytes, &dashboardStruct)
+
+	filteredDashboardCommitItems := make([]model.GitCommitItem, 0)
+
+	for _, commit := range dashboardStruct.Commits {
+		matchPattern, err := regexp.Compile(".*" + search + ".*")
+		if err != nil {
+			logger.json.Error("filterDashboard", "err", err)
+			break
+		}
+
+		if matched, err := regexp.Match(matchPattern.String(), []byte(*commit.CommitInfo[0].Comment)); err == nil && matched {
+			filteredDashboardCommitItems = append(filteredDashboardCommitItems, commit)
+		}
+	}
+
+	dashboardStruct.Commits = filteredDashboardCommitItems
+	return dashboardStruct
+}
+
+func filterRepositories(repositoriesData string, search string) model.RepositoriesData {
+	repositoriesStruct := model.RepositoriesData{}
+	repositoriesBytes := []byte(repositoriesData)
+	_ = json.Unmarshal(repositoriesBytes, &repositoriesStruct)
+
+	filteredRepos := make([]ado.GitRepo, 0)
+
+	for _, repo := range repositoriesStruct.Repos {
+		matchPattern, err := regexp.Compile(".*" + search + ".*")
+		if err != nil {
+			logger.json.Error("filterRepositories", "err", err)
+			break
+		}
+		if matched, err := regexp.Match(matchPattern.String(), []byte(repo.Name)); err == nil && matched {
+			filteredRepos = append(filteredRepos, repo)
+		}
+	}
+
+	repositoriesStruct.Repos = filteredRepos
+	return repositoriesStruct
 }
 
 func RenderDashboardHandler(globalState *model.GlobalState) http.HandlerFunc {
