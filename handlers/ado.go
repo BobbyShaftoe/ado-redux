@@ -34,7 +34,7 @@ func GetADOClientInfo() model.ADOConnectionInfo {
 func NewPATConnection() *azuredevops.Connection {
 	adoClientInfo := GetADOClientInfo()
 	connection := azuredevops.NewPatConnection(adoClientInfo.ConnectionUrl, adoClientInfo.ConnectionPAT)
-	logger.json.Info("RenderDashboard", "NewPATConnection", connection)
+	logger.json.Debug("RenderDashboard", "NewPATConnection", connection)
 	return connection
 }
 
@@ -68,8 +68,9 @@ func (adoClients ADOClients) GetProjects(ctx context.Context) *core.GetProjectsR
 	return responseValue
 }
 
-func (adoClients ADOClients) GetRepositories(ctx context.Context, project string) *[]git.GitRepository {
-	responseValue, err := adoClients.gitClient.GetRepositories(ctx, git.GetRepositoriesArgs{Project: &project})
+func (adoClients ADOClients) GetRepositories(ctx context.Context, globalState *model.GlobalState) *[]git.GitRepository {
+	logger.json.Debug("GetRepositories", "project", globalState.CurrentProject)
+	responseValue, err := adoClients.gitClient.GetRepositories(ctx, git.GetRepositoriesArgs{Project: &globalState.CurrentProject})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -156,7 +157,7 @@ func (adoClients ADOClients) GetCommits(ctx context.Context, gcc *model.GitCommi
 				return
 			}
 
-			logger.json.Info("GetCommits", "gitCommitsCriteria", gitCommitsCriteria)
+			logger.json.Debug("GetCommits", "gitCommitsCriteria", gitCommitsCriteria)
 
 			mu.Lock()
 			allCommits = append(allCommits, model.GitCommitItem{

@@ -3,7 +3,7 @@ package views
 import "HTTP_Sever/model"
 
 templ Index(globalState *model.GlobalState) {
-	@Layout(globalState) {
+	@Layout(globalState, "", "index") {
 		<div><p class="text-gray-600 font-sans">Hello</p></div>
 		<div><p class="text-gray-800 font-sans">Welcome to Ado User Dashboard Redux</p></div>
 	}
