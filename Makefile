@@ -15,7 +15,7 @@ rundev:
 
 
 gen-css:
-	tailwindcss -i views/css/app.css -o public/styles.css --watch
+	tailwindcss -i static/style-input.css -o static/style.css --watch
 
 fmt-templ:
 	@templ fmt views/*.templ

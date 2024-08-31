@@ -2,6 +2,7 @@ package model
 
 type GlobalState struct {
 	User           string   `json:"user"`
+	UserValidated  bool     `json:"userValidated"`
 	Projects       []string `json:"projects"`
 	CurrentProject string   `json:"currentProject"`
 }
@@ -30,4 +31,8 @@ func (g *GlobalState) UpdateGlobalStateProject(project string) {
 
 func (g *GlobalState) UpdateGlobalStateUser(user string) {
 	g.User = user
+}
+
+func (g *GlobalState) UpdateUserValidated(status bool) {
+	g.UserValidated = status
 }

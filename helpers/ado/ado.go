@@ -1,11 +1,27 @@
 package ado
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
-	"log"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/graph"
+	"log/slog"
+	"os"
 )
+
+type localLogger struct {
+	json *slog.Logger
+}
+
+var logger = &localLogger{
+	json: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+}
+
+func fatal(v ...any) {
+	logger.json.Error("main", "err", fmt.Sprint(v...))
+	os.Exit(1)
+}
 
 type GitRepo struct {
 	Name          string      `json:"name"`
@@ -21,7 +37,7 @@ func ReturnProjects(responseValue *core.GetProjectsResponseValue) []string {
 	index := 0
 	// Log the page of team project names
 	for _, teamProjectReference := range (*responseValue).Value {
-		log.Printf("Project Name[%v] = %v", index, *teamProjectReference.Name)
+		logger.json.Info("ReturnProjects", "index", index, "projectName", *teamProjectReference.Name)
 		Projects = append(Projects, *teamProjectReference.Name)
 		index++
 	}
@@ -33,7 +49,7 @@ func ReturnGitRepos(responseValue *[]git.GitRepository) []GitRepo {
 	index := 0
 	// Log the page of team project names
 	for _, gitRepository := range *responseValue {
-		log.Printf("Repository Name[%v] = %v", index, *gitRepository.Name)
+		logger.json.Info("ReturnGitRepos", "index", index, "gitRepository", *gitRepository.Name)
 		Repositories = append(Repositories, GitRepo{
 			Name:          *gitRepository.Name,
 			Id:            *gitRepository.Id,
@@ -46,3 +62,39 @@ func ReturnGitRepos(responseValue *[]git.GitRepository) []GitRepo {
 	}
 	return Repositories
 }
+
+func ReturnGitRepoNames(gitRepositories *[]git.GitRepository) []string {
+	var repositories []string
+	index := 0
+	for _, gitRepository := range *gitRepositories {
+		logger.json.Info("ReturnGitRepos", "index", index, "gitRepository", *gitRepository.Name)
+		repositories = append(repositories, *gitRepository.Name)
+		index++
+	}
+	return repositories
+}
+
+func ValidateUser(user string, userGraph *[]graph.GraphUser) bool {
+	logger.json.Info("ValidateUser", "users", userGraph)
+	for _, graphUser := range *userGraph {
+		logger.json.Info("ValidateUser", "user", user, "graphUser", *graphUser.MailAddress)
+		if *graphUser.PrincipalName == user || *graphUser.MailAddress == user {
+			return true
+		}
+	}
+	return false
+}
+
+//func ReturnGitCommitCriteria(globalState *model.GlobalState) *model.GitCommitsCriteria {
+//	return &model.GitCommitsCriteria{
+//		//RepositoryId: "",
+//		Author: globalState.User,
+//		User:   globalState.User,
+//		//FromDate:     "",
+//		//Version:      "",
+//		//VersionType:  "",
+//		//Skip:         0,
+//		//Stop:         0,
+//	}
+//
+//}

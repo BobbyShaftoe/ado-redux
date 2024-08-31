@@ -12,8 +12,9 @@ templ Layout(globalState *model.GlobalState) {
 			<script src="https://unpkg.com/alpinejs" defer></script>
 			<script src="/static/light-dark-mode.js" defer></script>
 			<link rel="stylesheet" href="/static/style.css"/>
+			<link rel="stylesheet" href="/static/tooltip.css"/>
 		</head>
-		<body class="bg-white dark:bg-gray-800">
+		<body class="bg-gray-100 dark:bg-gray-800">
 			@Header(globalState)
 			{ children... }
 			@Footer(globalState)

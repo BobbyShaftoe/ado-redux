@@ -9,6 +9,7 @@ type HelloData struct {
 }
 
 type DashboardData struct {
-	Projects []string      `json:"projects"`
-	Repos    []ado.GitRepo `json:"repos"`
+	Projects []string        `json:"projects"`
+	Repos    []ado.GitRepo   `json:"repos"`
+	Commits  []GitCommitItem `json:"commits"`
 }
