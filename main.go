@@ -73,6 +73,8 @@ func main() {
 
 	http.HandleFunc("/repositories-update", handlers.RenderRepositoriesUpdateProject(globalState))
 
+	http.HandleFunc("/search", handlers.HandleSearch(globalState))
+
 	logger.json.Info("main", "status", "Starting server at http://localhost:8080")
 	fatal(http.ListenAndServe(":8080", nil))
 }

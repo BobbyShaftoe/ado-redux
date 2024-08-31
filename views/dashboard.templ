@@ -5,7 +5,7 @@ import "HTTP_Sever/model"
 
 
 templ Dashboard(dashboardData model.DashboardData, globalState *model.GlobalState) {
-	@Layout(globalState, "dashboard") {
+	@Layout(globalState, dashboardData, "dashboard") {
 	<div id="indicator" class="absolute right-1/2 top-1/4 transform translate-x-1/2 translate-y-1/2 opacity-50 z-50">
 	    <img class="htmx-indicator h-48" src="/static/gear-spinner.svg"/>
 	 </div>

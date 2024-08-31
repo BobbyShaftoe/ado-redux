@@ -19,6 +19,15 @@ func RenderIndex(globalState *model.GlobalState) templ.Component {
 	return views.Index(globalState)
 }
 
+func HandleSearch(globalState *model.GlobalState) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		logger.json.Info("HandleSearch", "search", r.FormValue("search"), "page", r.FormValue("modelData"))
+
+		dashboardData := getDashboardData(globalState)
+		templ.Handler(views.DashboardContent(dashboardData, globalState)).ServeHTTP(w, r)
+	}
+}
+
 func RenderDashboardHandler(globalState *model.GlobalState) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger.json.Debug("RenderDashboard", "globalState", globalState)
