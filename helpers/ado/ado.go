@@ -37,7 +37,7 @@ func ReturnProjects(responseValue *core.GetProjectsResponseValue) []string {
 	index := 0
 	// Log the page of team project names
 	for _, teamProjectReference := range (*responseValue).Value {
-		//logger.json.Info("ReturnProjects", "index", index, "projectName", *teamProjectReference.Name)
+		logger.json.Debug("ReturnProjects", "index", index, "projectName", *teamProjectReference.Name)
 		Projects = append(Projects, *teamProjectReference.Name)
 		index++
 	}
@@ -49,7 +49,7 @@ func ReturnGitRepos(responseValue *[]git.GitRepository) []GitRepo {
 	index := 0
 	// Log the page of team project names
 	for _, gitRepository := range *responseValue {
-		//logger.json.Info("ReturnGitRepos", "index", index, "gitRepository", *gitRepository.Name)
+		logger.json.Debug("ReturnGitRepos", "index", index, "gitRepository", *gitRepository.Name)
 		Repositories = append(Repositories, GitRepo{
 			Name:          *gitRepository.Name,
 			Id:            *gitRepository.Id,
@@ -67,7 +67,7 @@ func ReturnGitRepoNames(gitRepositories *[]git.GitRepository) []string {
 	var repositories []string
 	index := 0
 	for _, gitRepository := range *gitRepositories {
-		//logger.json.Info("ReturnGitRepos", "index", index, "gitRepository", *gitRepository.Name)
+		logger.json.Debug("ReturnGitRepos", "index", index, "gitRepository", *gitRepository.Name)
 		repositories = append(repositories, *gitRepository.Name)
 		index++
 	}
@@ -77,24 +77,10 @@ func ReturnGitRepoNames(gitRepositories *[]git.GitRepository) []string {
 func ValidateUser(user string, userGraph *[]graph.GraphUser) bool {
 	logger.json.Debug("ValidateUser", "users", userGraph)
 	for _, graphUser := range *userGraph {
-		//logger.json.Info("ValidateUser", "user", user, "graphUser", *graphUser.MailAddress)
+		logger.json.Info("ValidateUser", "user", user, "graphUser", *graphUser.MailAddress)
 		if *graphUser.PrincipalName == user || *graphUser.MailAddress == user {
 			return true
 		}
 	}
 	return false
 }
-
-//func ReturnGitCommitCriteria(globalState *model.GlobalState) *model.GitCommitsCriteria {
-//	return &model.GitCommitsCriteria{
-//		//RepositoryId: "",
-//		Author: globalState.User,
-//		User:   globalState.User,
-//		//FromDate:     "",
-//		//Version:      "",
-//		//VersionType:  "",
-//		//Skip:         0,
-//		//Stop:         0,
-//	}
-//
-//}
