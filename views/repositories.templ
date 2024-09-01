@@ -2,84 +2,73 @@ package views
 
 import "HTTP_Sever/model"
 
-
 templ Repositories(RepositoriesData model.RepositoriesData, globalState *model.GlobalState) {
 	@Layout(globalState, RepositoriesData, "repositories") {
-	<div id="indicator" class="absolute right-1/2 top-1/4 transform translate-x-1/2 translate-y-1/2 opacity-50 z-50">
-	    <img class="htmx-indicator h-48" src="/static/gear-spinner.svg"/>
-	 </div>
-	<div id="container-main">
-		@RepositoriesContent(RepositoriesData, globalState)
-	</div>
+		<div id="indicator" class="absolute right-1/2 top-1/4 transform translate-x-1/2 translate-y-1/2 opacity-50 z-50">
+			<img class="htmx-indicator h-48" src="/static/gear-spinner.svg"/>
+		</div>
+		<div id="container-main">
+			@RepositoriesContent(RepositoriesData, globalState)
+		</div>
 	}
 }
 
 templ RepositoriesContent(RepositoriesData model.RepositoriesData, globalState *model.GlobalState) {
-    <div class="2xl:max-w-7xl flex flex-wrap items-center justify-between mx-auto p-2 m-4 border rounded-md sm:border-solid sm:border-gray-200 dark:border-gray-600">
-    			<p class="text-gray-800 dark:text-gray-300 font-sans"><b>Project:</b> { globalState.CurrentProject }</p>
-    		</div>
-
-    		<div class="2xl:max-w-7xl flex flex-wrap items-center justify-between mx-auto p-2 m-4 border rounded-md sm:border-solid sm:border-gray-200 dark:border-gray-600">
-
-
-                    <div class="flex items-end justify-between w-full">
-                        <div class="text-gray-800 dark:text-nav-blue-lightest font-sans mb-1 pl-2">
-                            Repositories
-                        </div>
-
-                        <div class="text-gray-800 dark:text-nav-blue-lightest font-sans mb-1 pr-2 py-0 z-40">
-                            @datePickerAdvanced()
-                        </div>
-         			</div>
-
-
-                <div class="relative overflow-x-auto w-full px-2">
-                    <table class="w-full text-sm text-left rtl:text-right text-gray-700 dark:text-gray-300 mb-4">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-100">
-                            <tr>
-                                <th scope="col" class="px-6 py-1">
-                                    Name
-                                </th>
-                                <th scope="col" class="px-6 py-1">
-                                    Id
-                                </th>
-                                <th scope="col" class="px-6 py-1">
-                                    WebUrl
-                                </th>
-                                <th scope="col" class="px-6 py-1">
-                                    DefaultBranch
-                                </th>
-                                <th scope="col" class="px-6 py-1">
-                                    URL
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            for _, repo := range RepositoriesData.Repos {
-                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                                    <th scope="row" class="px-6 py-2 font-medium text-blue-900 hover:underline whitespace-nowrap dark:text-blue-300">
-                                        <a href={ templ.SafeURL(repo.WebUrl) }>{ repo.Name }</a>
-                                    </th>
-                                    <td class="px-6 py-2">
-                                        { repo.Id.String() }
-                                    </td>
-                                    <td class="px-6 py-2">
-                                        <a href={ templ.SafeURL(repo.WebUrl) }>Link</a>
-                                    </td>
-                                    <td class="px-6 py-2">
-                                        { repo.DefaultBranch }
-                                    </td>
-                                    <td class="px-6 py-2 text-blue-900 hover:underline whitespace-nowrap dark:text-blue-300">
-                                        <a href={ templ.SafeURL(repo.Url) }>{ repo.Id.String() }</a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-    		</div>
+	<div class="2xl:max-w-7xl flex flex-wrap items-center justify-between mx-auto p-2 m-4 border rounded-md sm:border-solid sm:border-gray-200 dark:border-gray-600">
+		<p class="text-gray-800 dark:text-gray-300 font-sans"><b>Project:</b> { globalState.CurrentProject }</p>
+	</div>
+	<div class="2xl:max-w-7xl flex flex-wrap items-center justify-between mx-auto p-2 m-4 border rounded-md sm:border-solid sm:border-gray-200 dark:border-gray-600">
+		<div class="flex items-end justify-between w-full">
+			<div class="text-gray-800 dark:text-nav-blue-lightest font-sans mb-1 pl-2">
+				Repositories
+			</div>
+			<div class="text-gray-800 dark:text-nav-blue-lightest font-sans mb-1 pr-2 py-0 z-40">
+				@datePickerAdvanced()
+			</div>
+		</div>
+		<div class="relative overflow-x-auto w-full px-2">
+			<table class="w-full text-sm text-left rtl:text-right text-gray-700 dark:text-gray-300 mb-4">
+				<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-100">
+					<tr>
+						<th scope="col" class="px-6 py-1">
+							Name
+						</th>
+						<th scope="col" class="px-6 py-1">
+							Id
+						</th>
+						<th scope="col" class="px-6 py-1">
+							WebUrl
+						</th>
+						<th scope="col" class="px-6 py-1">
+							DefaultBranch
+						</th>
+						<th scope="col" class="px-6 py-1">
+							URL
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, repo := range RepositoriesData.Repos {
+						<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+							<th scope="row" class="px-6 py-2 font-medium text-blue-900 hover:underline whitespace-nowrap dark:text-blue-300">
+								<a href={ templ.SafeURL(repo.WebUrl) }>{ repo.Name }</a>
+							</th>
+							<td class="px-6 py-2">
+								{ repo.Id.String() }
+							</td>
+							<td class="px-6 py-2">
+								<a href={ templ.SafeURL(repo.WebUrl) }>Link</a>
+							</td>
+							<td class="px-6 py-2">
+								{ repo.DefaultBranch }
+							</td>
+							<td class="px-6 py-2 text-blue-900 hover:underline whitespace-nowrap dark:text-blue-300">
+								<a href={ templ.SafeURL(repo.Url) }>{ repo.Id.String() }</a>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
 }
-
-
-
