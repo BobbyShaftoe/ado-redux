@@ -49,10 +49,11 @@ func main() {
 			ListUsers(adoCtx, envVars.PROJECT))
 
 	globalState := &model.GlobalState{
-		User:           envVars.USER,
-		UserValidated:  userValidated,
-		Projects:       nil,
-		CurrentProject: envVars.PROJECT,
+		User:            envVars.USER,
+		AdditionalUsers: []string{"Kingsize.nix@outlook.com"},
+		UserValidated:   userValidated,
+		Projects:        nil,
+		CurrentProject:  envVars.PROJECT,
 	}
 
 	logger.json.Info("main", "globalState", globalState)

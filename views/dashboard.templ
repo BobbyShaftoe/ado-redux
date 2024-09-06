@@ -40,6 +40,9 @@ templ DashboardContent(dashboardData model.DashboardData, globalState *model.Glo
 							Commiter
 						</th>
 						<th scope="col" class="px-6 py-1">
+							Pusher
+						</th>
+						<th scope="col" class="px-6 py-1">
 							Comment
 						</th>
 						<th scope="col" class="px-6 py-1">
@@ -58,6 +61,9 @@ templ DashboardContent(dashboardData model.DashboardData, globalState *model.Glo
 							</td>
 							<td class="px-2 py-2">
 								{ getString(commit.CommitInfo[0].Committer.Name) }
+							</td>
+							<td class="px-2 py-2">
+								{ getString(commit.CommitInfo[0].Push.PushedBy.DisplayName) }
 							</td>
 							<td class="px-2 py-2">
 								{ getString(commit.CommitInfo[0].Comment) }

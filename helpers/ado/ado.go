@@ -1,8 +1,9 @@
 package ado
 
 import (
+	"HTTP_Sever/model"
 	"fmt"
-	"github.com/google/uuid"
+	//"github.com/google/uuid"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/graph"
@@ -23,14 +24,14 @@ func fatal(v ...any) {
 	os.Exit(1)
 }
 
-type GitRepo struct {
-	Name          string      `json:"name"`
-	Id            uuid.UUID   `json:"id"`
-	Url           string      `json:"url"`
-	WebUrl        string      `json:"webUrl"`
-	Links         interface{} `json:"links"`
-	DefaultBranch string      `json:"defaultBranch"`
-}
+//type GitRepo struct {
+//	Name          string      `json:"name"`
+//	Id            uuid.UUID   `json:"id"`
+//	Url           string      `json:"url"`
+//	WebUrl        string      `json:"webUrl"`
+//	Links         interface{} `json:"links"`
+//	DefaultBranch string      `json:"defaultBranch"`
+//}
 
 func ReturnProjects(responseValue *core.GetProjectsResponseValue) []string {
 	var Projects []string
@@ -44,13 +45,13 @@ func ReturnProjects(responseValue *core.GetProjectsResponseValue) []string {
 	return Projects
 }
 
-func ReturnGitRepos(responseValue *[]git.GitRepository) []GitRepo {
-	var Repositories []GitRepo
+func ReturnGitRepos(responseValue *[]git.GitRepository) []model.GitRepo {
+	var Repositories []model.GitRepo
 	index := 0
 	// Log the page of team project names
 	for _, gitRepository := range *responseValue {
 		logger.json.Debug("ReturnGitRepos", "index", index, "gitRepository", *gitRepository.Name)
-		Repositories = append(Repositories, GitRepo{
+		Repositories = append(Repositories, model.GitRepo{
 			Name:          *gitRepository.Name,
 			Id:            *gitRepository.Id,
 			Url:           *gitRepository.Url,
@@ -72,6 +73,41 @@ func ReturnGitRepoNames(gitRepositories *[]git.GitRepository) []string {
 		index++
 	}
 	return repositories
+}
+
+func ReturnGitCommitItemSimple(gitCommitItem []model.GitCommitItem) []model.GitCommitItemSimple {
+	commitItems := make([]model.GitCommitItemSimple, 0)
+
+	for _, commitItem := range gitCommitItem {
+		var ci []model.CommitInfoSimple
+
+		for _, commitInfo := range commitItem.CommitInfo {
+			tmpCommitInfoSimple := model.CommitInfoSimple{
+				Author:    *commitInfo.Author,
+				Comment:   *commitInfo.Comment,
+				CommitId:  *commitInfo.CommitId,
+				Committer: *commitInfo.Committer,
+				Push:      *commitInfo.Push,
+				RemoteUrl: *commitInfo.RemoteUrl,
+			}
+
+			if commitInfo.CommentTruncated != nil {
+				tmpCommitInfoSimple.CommentTruncated = *commitInfo.CommentTruncated
+			}
+			if commitInfo.Changes != nil {
+				tmpCommitInfoSimple.Changes = *commitInfo.Changes
+			}
+			if commitInfo.WorkItems != nil {
+				tmpCommitInfoSimple.WorkItems = *commitInfo.WorkItems
+			}
+			ci = append(ci, tmpCommitInfoSimple)
+		}
+		commitItems = append(commitItems, model.GitCommitItemSimple{
+			Repository: commitItem.Repository,
+			CommitInfo: ci,
+		})
+	}
+	return commitItems
 }
 
 func ValidateUser(user string, userGraph *[]graph.GraphUser) bool {

@@ -5,6 +5,7 @@ import (
 	"HTTP_Sever/model"
 	"context"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/graph"
@@ -16,6 +17,7 @@ type ADOClients struct {
 	coreClient  core.Client
 	gitClient   git.Client
 	graphClient graph.Client
+	buildClient build.Client
 }
 
 type ADORequests interface {
@@ -49,6 +51,7 @@ func NewADOClients(ctx context.Context) *ADOClients {
 	if err != nil {
 		fatal(err)
 	}
+	buildClient, err := build.NewClient(ctx, patConnection)
 	if err != nil {
 		fatal(err)
 	}
@@ -57,7 +60,9 @@ func NewADOClients(ctx context.Context) *ADOClients {
 		coreClient:  coreClient,
 		gitClient:   gitClient,
 		graphClient: graphClient,
+		buildClient: buildClient,
 	}
+
 }
 
 func (adoClients ADOClients) GetProjects(ctx context.Context) *core.GetProjectsResponseValue {
@@ -86,13 +91,14 @@ func ReturnGitCommitCriteria(globalState *model.GlobalState) *model.GitCommitsCr
 		Version:     "",
 		VersionType: "",
 		Skip:        0,
-		Top:         3,
+		Top:         10,
 	}
 
 }
 
 func (adoClients ADOClients) GetCommits(ctx context.Context, gcc *model.GitCommitsCriteria, globalState *model.GlobalState, repositories []string) []model.GitCommitItem {
 	var True = true
+	var False = false
 	var allCommits []model.GitCommitItem
 
 	//var gitVersionDescriptor = git.GitVersionDescriptor{
@@ -126,9 +132,9 @@ func (adoClients ADOClients) GetCommits(ctx context.Context, gcc *model.GitCommi
 				Project:      &globalState.CurrentProject,
 				RepositoryId: &gitCommitsCriteria.RepositoryId,
 				SearchCriteria: &git.GitQueryCommitsCriteria{
-					Skip:                &gitCommitsCriteria.Skip,
-					Top:                 &gitCommitsCriteria.Top,
-					Author:              &gitCommitsCriteria.Author,
+					Skip: &gitCommitsCriteria.Skip,
+					Top:  &gitCommitsCriteria.Top,
+					//Author:              &gitCommitsCriteria.Author,
 					CompareVersion:      nil,
 					ExcludeDeletes:      &True,
 					FromCommitId:        nil,
@@ -142,10 +148,10 @@ func (adoClients ADOClients) GetCommits(ctx context.Context, gcc *model.GitCommi
 					ItemPath:            nil,
 					ItemVersion:         nil,
 					//ItemVersion:            &gitVersionDescriptor,
-					ShowOldestCommitsFirst: nil,
+					ShowOldestCommitsFirst: &False,
 					ToCommitId:             nil,
 					ToDate:                 nil,
-					User:                   nil,
+					User:                   &gitCommitsCriteria.User, // User is the commit author
 				},
 			})
 			if err != nil {
@@ -184,6 +190,95 @@ func (adoClients ADOClients) GetPush(ctx context.Context, repository string, pus
 		log.Fatal(err)
 	}
 	return responseValue
+}
+
+// The ListBuilds function in the ADOClients struct is designed to retrieve a list of builds from Azure DevOps for a given set of repositories.
+// It takes three parameters: a context.Context object, a globalState object of type *model.GlobalState, and a slice of repository names.
+func (adoClients ADOClients) ListBuilds(ctx context.Context, globalState *model.GlobalState, repositories []model.GitRepo) []build.Build {
+	buildsList := make([]build.Build, 0)
+	var repositoryType = "TfsGit"
+	top := 1
+
+	for _, repo := range repositories {
+		repoId := repo.Id.String()
+		logger.json.Debug("ListBuilds", "repoId", repoId)
+
+		var responseValue, err = adoClients.buildClient.GetBuilds(ctx, build.GetBuildsArgs{
+			Project:                &globalState.CurrentProject,
+			Definitions:            nil,
+			Queues:                 nil,
+			BuildNumber:            nil,
+			MinTime:                nil,
+			MaxTime:                nil,
+			RequestedFor:           nil,
+			ReasonFilter:           nil,
+			StatusFilter:           nil,
+			ResultFilter:           nil,
+			TagFilters:             nil,
+			Properties:             nil,
+			Top:                    &top,
+			ContinuationToken:      nil,
+			MaxBuildsPerDefinition: nil,
+			DeletedFilter:          nil,
+			QueryOrder:             nil,
+			BranchName:             nil,
+			BuildIds:               nil,
+			RepositoryId:           &repoId,
+			RepositoryType:         &repositoryType,
+		})
+		if err != nil {
+			continue
+		}
+		builds := responseValue
+		buildsList = append(buildsList, builds.Value...)
+	}
+	logger.json.Info("ListBuilds", "buildsList", buildsList)
+	return buildsList
+}
+
+// https://learn.microsoft.com/en-us/rest/api/azure/devops/build/latest/get?view=azure-devops-rest-7.2#buildrepository
+func (adoClients ADOClients) GetLatestBuildsFromBuilds(ctx context.Context, globalState *model.GlobalState, buildList []build.Build) []build.Build {
+	latestBuilds := make([]build.Build, 0)
+	for _, buildItem := range buildList {
+		//definitionId := "nvm.module.opensearch"
+		//definitionId := strconv.Itoa(*buildItem.Definition.Id)
+		responseValue, err := adoClients.buildClient.GetLatestBuild(ctx, build.GetLatestBuildArgs{
+			Project:    &globalState.CurrentProject,
+			Definition: buildItem.Definition.Name,
+			//Definition: &definitionId,
+			//BranchName: nil,
+		})
+
+		if err != nil {
+			logger.json.Info("GetLatestBuildsFromBuilds", "err", err, "repo", buildItem.Definition.Name)
+			continue
+		}
+
+		currentBuildItem := *responseValue
+		latestBuilds = append(latestBuilds, currentBuildItem)
+
+	}
+	return latestBuilds
+}
+
+func (adoClients ADOClients) GetLatestBuildsFromRepositories(ctx context.Context, globalState *model.GlobalState, repositories []string) []build.Build {
+	latestBuilds := make([]build.Build, 0)
+	for _, repo := range repositories {
+		logger.json.Info("GetLatestBuildsFromRepositories", "repo", repo)
+		responseValue, err := adoClients.buildClient.GetLatestBuild(ctx, build.GetLatestBuildArgs{
+			Project:    &globalState.CurrentProject,
+			Definition: &repo,
+			BranchName: nil,
+		})
+		if err != nil {
+			//logger.json.Error("GetLatestBuildsFromRepositories", "err", err)
+			continue
+		}
+		buildItem := *responseValue
+		latestBuilds = append(latestBuilds, buildItem)
+		//logger.json.Info("GetLatestBuildsFromRepositories", "latestBuild", responseValue)
+	}
+	return latestBuilds
 }
 
 func (adoClients ADOClients) ListUsers(ctx context.Context, project string) *[]graph.GraphUser {
