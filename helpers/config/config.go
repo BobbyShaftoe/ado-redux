@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 )
 
 type EnvVars struct {
-	DBPass       string
-	PAT          string
-	ORGANIZATION string
-	PROJECT      string
-	USER         string
+	Pat             string
+	Organization    string
+	Project         string
+	User            string
+	AdditionalUsers []string
 }
 
 type localLogger struct {
@@ -34,25 +35,27 @@ func New() *EnvVars {
 }
 
 func (EnvVars *EnvVars) getEnv() {
-	EnvVars.DBPass = os.Getenv("DB_PASS")
-	EnvVars.PAT = os.Getenv("AZURE_TOKEN")
-	EnvVars.ORGANIZATION = os.Getenv("ADO_ORG")
-	EnvVars.PROJECT = os.Getenv("ADO_DEFAULT_PROJECT")
-	EnvVars.USER = os.Getenv("ADO_DEFAULT_USER")
+	EnvVars.Pat = os.Getenv("AZURE_TOKEN")
+	EnvVars.Organization = os.Getenv("ADO_ORG")
+	EnvVars.Project = os.Getenv("ADO_DEFAULT_PROJECT")
+	EnvVars.User = os.Getenv("ADO_DEFAULT_USER")
 
-	if EnvVars.DBPass == "" {
-		fatal("DB_PASS environment variable not set")
+	if additionalUsers := os.Getenv("ADO_ADDITIONAL_USERS"); additionalUsers != "" {
+		EnvVars.AdditionalUsers = strings.Split(additionalUsers, ",")
+	} else {
+		EnvVars.AdditionalUsers = make([]string, 0)
 	}
-	if EnvVars.PAT == "" {
+
+	if EnvVars.Pat == "" {
 		fatal("AZURE_TOKEN environment variable not set")
 	}
-	if EnvVars.ORGANIZATION == "" {
+	if EnvVars.Organization == "" {
 		fatal("ADO_ORG environment variable not set")
 	}
-	if EnvVars.PROJECT == "" {
+	if EnvVars.Project == "" {
 		fatal("ADO_DEFAULT_PROJECT environment variable not set")
 	}
-	if EnvVars.USER == "" {
+	if EnvVars.User == "" {
 		fatal("ADO_DEFAULT_USER environment variable not set")
 	}
 }

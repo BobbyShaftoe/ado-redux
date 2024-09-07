@@ -1,7 +1,7 @@
 package model
 
 import (
-	"HTTP_Sever/helpers/ado"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 )
 
 type HelloData struct {
@@ -9,7 +9,8 @@ type HelloData struct {
 }
 
 type DashboardData struct {
-	Projects []string        `json:"projects"`
-	Repos    []ado.GitRepo   `json:"repos"`
-	Commits  []GitCommitItem `json:"commits"`
+	Projects []string              `json:"projects"`
+	Repos    []GitRepo             `json:"repos"`
+	Commits  []GitCommitItemSimple `json:"commits"`
+	Builds   []build.Build         `json:"builds"`
 }

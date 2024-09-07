@@ -2,92 +2,79 @@ package views
 
 import "HTTP_Sever/model"
 
-
-
 templ Dashboard(dashboardData model.DashboardData, globalState *model.GlobalState) {
 	@Layout(globalState, dashboardData, "dashboard") {
-	<div id="indicator" class="absolute right-1/2 top-1/4 transform translate-x-1/2 translate-y-1/2 opacity-50 z-50">
-	    <img class="htmx-indicator h-48" src="/static/gear-spinner.svg"/>
-	 </div>
-	<div id="container-main">
-		@DashboardContent(dashboardData, globalState)
-	</div>
+		<div id="indicator" class="absolute right-1/2 top-1/4 transform translate-x-1/2 translate-y-1/2 opacity-50 z-50">
+			<img class="htmx-indicator h-48" src="/static/gear-spinner.svg"/>
+		</div>
+		<div id="container-main">
+			@DashboardContent(dashboardData, globalState)
+		</div>
 	}
 }
 
 templ DashboardContent(dashboardData model.DashboardData, globalState *model.GlobalState) {
-    <div class="2xl:max-w-7xl flex flex-wrap items-center justify-between mx-auto p-2 m-4 border rounded-md sm:border-solid sm:border-gray-200 dark:border-gray-600">
-    			<p class="text-gray-800 dark:text-gray-300 font-sans"><b>Project:</b> { globalState.CurrentProject }</p>
-    		</div>
-
-    		<div class="2xl:max-w-7xl flex flex-wrap items-center justify-between mx-auto p-2 m-4 border rounded-md sm:border-solid sm:border-gray-200 dark:border-gray-600">
-
-
-                    <div class="flex items-end justify-between w-full">
-                        <div class="text-gray-800 dark:text-nav-blue-lightest font-sans mb-1 pl-2">
-                            Commits
-                        </div>
-
-                        <div class="text-gray-800 dark:text-nav-blue-lightest font-sans mb-1 pr-2 py-0 z-40">
-                            @datePickerAdvanced()
-                        </div>
-         			</div>
-
-
-
-
-
-
-                <div class="relative overflow-x-auto w-full px-2">
-
-                        <table class="w-full text-sm text-left rtl:text-right text-gray-700 dark:text-gray-300 mb-4">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-100">
-                                <tr>
-                                    <th scope="col" class="px-6 py-1">
-                                        Repository
-                                    </th>
-                                    <th scope="col" class="px-6 py-1">
-                                        Date
-                                    </th>
-                                    <th scope="col" class="px-6 py-1">
-                                        Commiter
-                                    </th>
-                                    <th scope="col" class="px-6 py-1">
-                                        Comment
-                                    </th>
-                                    <th scope="col" class="px-6 py-1">
-                                        Commit Id
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                for _, commit := range dashboardData.Commits {
-
-                                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                                        <th scope="row" class="px-6 py-2 font-medium text-blue-900 hover:underline whitespace-nowrap dark:text-blue-300">
-                                            <a href={ templ.SafeURL(getString(commit.CommitInfo[0].RemoteUrl)) }>{ commit.Repository }</a>
-                                        </th>
-                                        <td class="px2 py-2">
-                                            { commit.CommitInfo[0].Committer.Date.Time.Format("02-01-2006") }
-                                        </td>
-                                        <td class="px-2 py-2">
-                                            { getString(commit.CommitInfo[0].Committer.Name) }
-                                        </td>
-                                        <td class="px-2 py-2">
-                                            { getString(commit.CommitInfo[0].Comment) }
-                                        </td>
-                                        <td class="px-2 py-2 font-medium text-blue-900 hover:underline whitespace-nowrap dark:text-blue-300">
-                                            <a href={ templ.SafeURL(getString(commit.CommitInfo[0].Url)) }>{ getString(commit.CommitInfo[0].CommitId) }</a>
-
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                </div>
-    		</div>
+	<div class="2xl:max-w-7xl flex flex-wrap items-center justify-between mx-auto p-2 m-4 border rounded-md sm:border-solid sm:border-gray-200 dark:border-gray-600">
+		<p class="text-gray-800 dark:text-gray-300 font-sans"><b>Project:</b> { globalState.CurrentProject }</p>
+	</div>
+	<div class="2xl:max-w-7xl flex flex-wrap items-center justify-between mx-auto p-2 m-4 border rounded-md sm:border-solid sm:border-gray-200 dark:border-gray-600">
+		<div class="flex items-end justify-between w-full">
+			<div class="text-gray-800 dark:text-nav-blue-lightest font-sans mb-1 pl-2">
+				Commits
+			</div>
+			<div class="text-gray-800 dark:text-nav-blue-lightest font-sans mb-1 pr-2 py-0 z-40">
+				@datePickerAdvanced()
+			</div>
+		</div>
+		<div class="relative overflow-x-auto w-full px-2">
+			<table class="w-full text-sm text-left rtl:text-right text-gray-700 dark:text-gray-300 mb-4">
+				<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-100">
+					<tr>
+						<th scope="col" class="px-6 py-1">
+							Repository
+						</th>
+						<th scope="col" class="px-6 py-1">
+							Date
+						</th>
+						<th scope="col" class="px-6 py-1">
+							Commiter
+						</th>
+						<th scope="col" class="px-6 py-1">
+							Pusher
+						</th>
+						<th scope="col" class="px-6 py-1">
+							Comment
+						</th>
+						<th scope="col" class="px-6 py-1">
+							Commit Id
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, commit := range dashboardData.Commits {
+						<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+							<th scope="row" class="px-6 py-2 font-medium text-blue-900 hover:underline whitespace-nowrap dark:text-blue-300">
+								<a href={ templ.SafeURL(commit.CommitInfo[0].RemoteRepoUrl) }>{ commit.Repository }</a>
+							</th>
+							<td class="px2 py-2">
+								{ commit.CommitInfo[0].Committer.Date.Time.Format("02-01-2006") }
+							</td>
+							<td class="px-2 py-2">
+								{ getString(commit.CommitInfo[0].Committer.Name) }
+							</td>
+							<td class="px-2 py-2">
+								{ getString(commit.CommitInfo[0].Push.PushedBy.DisplayName) }
+							</td>
+							<td class="px-2 py-2">
+								{ commit.CommitInfo[0].Comment }
+							</td>
+							<td class="px-2 py-2 font-medium text-blue-900 hover:underline whitespace-nowrap dark:text-blue-300">
+								<a href={ templ.SafeURL(commit.CommitInfo[0].RemoteUrl) }>{ commit.CommitInfo[0].CommitIdShort }</a>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
 }
-
-
-
-

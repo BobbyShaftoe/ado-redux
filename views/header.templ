@@ -1,26 +1,26 @@
 package views
 
-import "HTTP_Sever/model"
-import "encoding/json"
+import (
+	"HTTP_Sever/model"
+	"encoding/json"
+)
 
 func navHighlight(page string, current string) string {
-    if page == current {
-        return "text-nav-blue dark:text-nav-blue-lightest"
-    } else  {
-        return "text-gray-800 dark:text-nav-blue"
-    }
+	if page == current {
+		return "text-nav-blue dark:text-nav-blue-lightest"
+	} else {
+		return "text-gray-800 dark:text-nav-blue"
+	}
 }
 
 func currentPageJSON(page string, modelData interface{}) string {
-    pageMap := map[string]any{
-        "pageContext": page,
-        "modelData": modelData,
-    }
-    bytes, _ := json.Marshal(pageMap)
-    return string(bytes)
+	pageMap := map[string]any{
+		"pageContext": page,
+		"modelData":   modelData,
+	}
+	bytes, _ := json.Marshal(pageMap)
+	return string(bytes)
 }
-
-
 
 templ Header[T model.RepositoriesData | model.DashboardData | string](globalState *model.GlobalState, modelData T, page string) {
 	<nav class="bg-white border-gray-200 dark:bg-gray-900">
@@ -46,15 +46,16 @@ templ Header[T model.RepositoriesData | model.DashboardData | string](globalStat
 						<span class="sr-only">Search icon</span>
 					</div>
 					<input
-					type="search"
-					id="search-navbar"
-					class="block w-64 p-1 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Filter results..."
-					name="search"
-					hx-post={ templ.EscapeString("/search") }
-					hx-vals={ currentPageJSON(page, modelData) }
-					hx-trigger="keyup changed delay:400ms"
-					hx-target="#container-main"
-					hx-swap="innerHTML"
+						type="search"
+						id="search-navbar"
+						class="block w-64 p-1 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+						placeholder="Filter results..."
+						name="search"
+						hx-post={ templ.EscapeString("/search") }
+						hx-vals={ currentPageJSON(page, modelData) }
+						hx-trigger="keyup changed delay:400ms"
+						hx-target="#container-main"
+						hx-swap="innerHTML"
 					/>
 				</div>
 				<button data-collapse-toggle="navbar-search" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-search" aria-expanded="false">
@@ -64,14 +65,13 @@ templ Header[T model.RepositoriesData | model.DashboardData | string](globalStat
 					</svg>
 				</button>
 			</div>
-
 			// Text Menu
 			<ul class="flex flex-col p-4 md:p-0 mt-4 font-normal border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
 				<li>
 					<a href="/repositories" class={ "block py-2 pl-3 pr-4 rounded hover:bg-gray-100 md:hover:bg-transparent dark:hover:text-nav-blue-light dark:border-gray-700 dark:hover:bg-gray-700 md:hover:text-blue-700 md:p-0 md:dark:hover:bg-transparent", navHighlight("repositories", page) }>Repositories</a>
 				</li>
 				<li>
-					<a href="/dashboard"    class={ "block py-2 pl-3 pr-4 rounded hover:bg-gray-100 md:hover:bg-transparent dark:hover:text-nav-blue-light dark:border-gray-700 dark:hover:bg-gray-700 md:hover:text-blue-700 md:p-0 md:dark:hover:bg-transparent", navHighlight("dashboard", page) }>Dashboard</a>
+					<a href="/dashboard" class={ "block py-2 pl-3 pr-4 rounded hover:bg-gray-100 md:hover:bg-transparent dark:hover:text-nav-blue-light dark:border-gray-700 dark:hover:bg-gray-700 md:hover:text-blue-700 md:p-0 md:dark:hover:bg-transparent", navHighlight("dashboard", page) }>Dashboard</a>
 				</li>
 			</ul>
 			// Dark/Light Mode
@@ -119,8 +119,13 @@ templ Header[T model.RepositoriesData | model.DashboardData | string](globalStat
 					>
 						<div class="p-1 mt-1 bg-white dark:bg-button-blue border rounded shadow-md border-neutral-200/70 dark:border-button-blue-dark text-neutral-700 dark:text-neutral-200">
 							for _, project := range globalState.Projects {
-								<div hx-get={ "/" + page + templ.EscapeString("-update?project=") + templ.EscapeString(project) } hx-target="#container-main" hx-swap="innerHTML" hx-indicator="#indicator"
-								class="relative flex cursor-default select-none hover:bg-neutral-200 dark:hover:bg-nav-blue items-center rounded px-2 py-1.5 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+								<div
+									hx-get={ "/" + page + templ.EscapeString("-update?project=") + templ.EscapeString(project) }
+									hx-target="#container-main"
+									hx-swap="innerHTML"
+									hx-indicator="#indicator"
+									class="relative flex cursor-default select-none hover:bg-neutral-200 dark:hover:bg-nav-blue items-center rounded px-2 py-1.5 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+								>
 									<span>{ project }</span>
 									<span class="ml-auto text-xs tracking-widest opacity-60">⇧⌘P</span>
 								</div>
@@ -132,8 +137,6 @@ templ Header[T model.RepositoriesData | model.DashboardData | string](globalStat
 		</div>
 	</nav>
 }
-
-
 
 //<div class="p-1 mt-1 bg-white dark:bg-button-blue border rounded shadow-md border-neutral-200/70 dark:border-button-blue-dark text-neutral-700 dark:text-neutral-200">
 //							for _, project := range globalState.Projects {

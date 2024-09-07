@@ -44,7 +44,7 @@ func filterDashboard(dashboardData string, search string) model.DashboardData {
 	dashboardBytes := []byte(dashboardData)
 	_ = json.Unmarshal(dashboardBytes, &dashboardStruct)
 
-	filteredDashboardCommitItems := make([]model.GitCommitItem, 0)
+	filteredDashboardCommitItems := make([]model.GitCommitItemSimple, 0)
 
 	for _, commit := range dashboardStruct.Commits {
 		matchPattern, err := regexp.Compile(".*" + search + ".*")
@@ -53,7 +53,7 @@ func filterDashboard(dashboardData string, search string) model.DashboardData {
 			break
 		}
 
-		if matched, err := regexp.Match(matchPattern.String(), []byte(*commit.CommitInfo[0].Comment)); err == nil && matched {
+		if matched, err := regexp.Match(matchPattern.String(), []byte(commit.CommitInfo[0].Comment)); err == nil && matched {
 			filteredDashboardCommitItems = append(filteredDashboardCommitItems, commit)
 		}
 	}
@@ -66,7 +66,7 @@ func filterRepositories(repositoriesData string, search string) model.Repositori
 	repositoriesBytes := []byte(repositoriesData)
 	_ = json.Unmarshal(repositoriesBytes, &repositoriesStruct)
 
-	filteredRepos := make([]ado.GitRepo, 0)
+	filteredRepos := make([]model.GitRepo, 0)
 
 	for _, repo := range repositoriesStruct.Repos {
 		matchPattern, err := regexp.Compile(".*" + search + ".*")
@@ -127,23 +127,41 @@ func RenderRepositoriesUpdateProject(globalState *model.GlobalState) http.Handle
 func getDashboardData(globalState *model.GlobalState) model.DashboardData {
 	adoCtx := context.Background()
 
+	allUsers := append(globalState.AdditionalUsers, globalState.User)
+	allCommits := make([]model.GitCommitItem, 0)
+
 	projects := NewADOClients(adoCtx).GetProjects(adoCtx)
+	// Get repositories for the current project
 	repoNames := NewADOClients(adoCtx).GetRepositories(adoCtx, globalState)
 	repositories := ado.ReturnGitRepoNames(repoNames)
 	commitsCriteria := ReturnGitCommitCriteria(globalState)
-	commits := NewADOClients(adoCtx).GetCommits(adoCtx, commitsCriteria, globalState, repositories)
 
-	logger.json.Debug("getDashboardData", "commitsCriteria", commitsCriteria, "commits", commits)
+	for _, user := range allUsers {
+		commitsCriteria.Author = user
+		commits := NewADOClients(adoCtx).GetCommits(adoCtx, commitsCriteria, globalState, repositories)
+		allCommits = append(allCommits, commits...)
+	}
+	allCommitsSimple := ado.ReturnGitCommitItemSimple(allCommits)
 
 	dashboardData := model.DashboardData{
 		Projects: ado.ReturnProjects(projects),
 		Repos:    ado.ReturnGitRepos(repoNames),
-		Commits:  commits,
+		Commits:  allCommitsSimple,
 	}
 	logger.json.Debug("getDashboardData", "dashboardData", dashboardData, "globalState", globalState)
+
+	// Get builds for the current project
+	buildList := NewADOClients(adoCtx).ListBuilds(adoCtx, globalState, ado.ReturnGitRepos(repoNames))
+	latestBuilds := NewADOClients(adoCtx).GetLatestBuildsFromBuilds(adoCtx, globalState, buildList)
+
+	//latestBuilds := NewADOClients(adoCtx).GetLatestBuildsFromRepositories(adoCtx, globalState, repositories)
+	logger.json.Debug("getDashboardData", "latestBuilds", latestBuilds)
+	dashboardData.Builds = latestBuilds
 	return dashboardData
 }
 
+// Repositories functions
+// getRepositoriesData returns the repositories data for the current project
 func getRepositoriesData(globalState *model.GlobalState) model.RepositoriesData {
 	adoCtx := context.Background()
 
@@ -157,5 +175,8 @@ func getRepositoriesData(globalState *model.GlobalState) model.RepositoriesData 
 		Repos:    ado.ReturnGitRepos(repoNames),
 	}
 	logger.json.Debug("getDashboardData", "repositoriesData", repositoriesData)
+
+	_ = NewADOClients(adoCtx).ListBuilds(adoCtx, globalState, ado.ReturnGitRepos(repoNames))
+
 	return repositoriesData
 }

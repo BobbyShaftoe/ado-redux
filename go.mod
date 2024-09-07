@@ -6,7 +6,6 @@ require (
 	github.com/a-h/templ v0.2.747
 	github.com/google/uuid v1.1.1
 	github.com/jackc/pgx/v5 v5.6.0
-	github.com/microsoft/azure-devops-go-api/azuredevops v1.0.0-b5
 	github.com/microsoft/azure-devops-go-api/azuredevops/v7 v7.1.0
 )
 
