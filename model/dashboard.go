@@ -9,8 +9,8 @@ type HelloData struct {
 }
 
 type DashboardData struct {
-	Projects []string        `json:"projects"`
-	Repos    []GitRepo       `json:"repos"`
-	Commits  []GitCommitItem `json:"commits"`
-	Builds   []build.Build   `json:"builds"`
+	Projects []string              `json:"projects"`
+	Repos    []GitRepo             `json:"repos"`
+	Commits  []GitCommitItemSimple `json:"commits"`
+	Builds   []build.Build         `json:"builds"`
 }

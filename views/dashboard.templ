@@ -54,7 +54,7 @@ templ DashboardContent(dashboardData model.DashboardData, globalState *model.Glo
 					for _, commit := range dashboardData.Commits {
 						<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
 							<th scope="row" class="px-6 py-2 font-medium text-blue-900 hover:underline whitespace-nowrap dark:text-blue-300">
-								<a href={ templ.SafeURL(getString(commit.CommitInfo[0].RemoteUrl)) }>{ commit.Repository }</a>
+								<a href={ templ.SafeURL(commit.CommitInfo[0].RemoteRepoUrl) }>{ commit.Repository }</a>
 							</th>
 							<td class="px2 py-2">
 								{ commit.CommitInfo[0].Committer.Date.Time.Format("02-01-2006") }
@@ -66,10 +66,10 @@ templ DashboardContent(dashboardData model.DashboardData, globalState *model.Glo
 								{ getString(commit.CommitInfo[0].Push.PushedBy.DisplayName) }
 							</td>
 							<td class="px-2 py-2">
-								{ getString(commit.CommitInfo[0].Comment) }
+								{ commit.CommitInfo[0].Comment }
 							</td>
 							<td class="px-2 py-2 font-medium text-blue-900 hover:underline whitespace-nowrap dark:text-blue-300">
-								<a href={ templ.SafeURL(getString(commit.CommitInfo[0].Url)) }>{ getString(commit.CommitInfo[0].CommitId) }</a>
+								<a href={ templ.SafeURL(commit.CommitInfo[0].RemoteUrl) }>{ commit.CommitInfo[0].CommitIdShort }</a>
 							</td>
 						</tr>
 					}

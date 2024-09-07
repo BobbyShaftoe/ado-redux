@@ -46,9 +46,11 @@ type CommitInfoSimple struct {
 	Comment          string               `json:"comment,omitempty"`
 	CommentTruncated bool                 `json:"comment_truncated,omitempty"`
 	CommitId         string               `json:"commit_id,omitempty"`
+	CommitIdShort    string               `json:"commit_id_short,omitempty"`
 	Committer        git.GitUserDate      `json:"committer,omitempty"`
 	Changes          []interface{}        `json:"changes,omitempty"`
 	Push             git.GitPushRef       `json:"push,omitempty"`
 	RemoteUrl        string               `json:"remote_url,omitempty"`
+	RemoteRepoUrl    string               `json:"remote_repo_url,omitempty"`
 	WorkItems        []webapi.ResourceRef `json:"work_items,omitempty"`
 }

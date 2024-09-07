@@ -3,12 +3,12 @@ package ado
 import (
 	"HTTP_Sever/model"
 	"fmt"
-	//"github.com/google/uuid"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/graph"
 	"log/slog"
 	"os"
+	"regexp"
 )
 
 type localLogger struct {
@@ -23,15 +23,6 @@ func fatal(v ...any) {
 	logger.json.Error("main", "err", fmt.Sprint(v...))
 	os.Exit(1)
 }
-
-//type GitRepo struct {
-//	Name          string      `json:"name"`
-//	Id            uuid.UUID   `json:"id"`
-//	Url           string      `json:"url"`
-//	WebUrl        string      `json:"webUrl"`
-//	Links         interface{} `json:"links"`
-//	DefaultBranch string      `json:"defaultBranch"`
-//}
 
 func ReturnProjects(responseValue *core.GetProjectsResponseValue) []string {
 	var Projects []string
@@ -76,10 +67,12 @@ func ReturnGitRepoNames(gitRepositories *[]git.GitRepository) []string {
 }
 
 func ReturnGitCommitItemSimple(gitCommitItem []model.GitCommitItem) []model.GitCommitItemSimple {
+	logger.json.Info("ReturnGitCommitItemSimple", "gitCommitItem", gitCommitItem)
 	commitItems := make([]model.GitCommitItemSimple, 0)
+	ci := make([]model.CommitInfoSimple, 0)
 
 	for _, commitItem := range gitCommitItem {
-		var ci []model.CommitInfoSimple
+		ci = ci[:0]
 
 		for _, commitInfo := range commitItem.CommitInfo {
 			tmpCommitInfoSimple := model.CommitInfoSimple{
@@ -100,6 +93,13 @@ func ReturnGitCommitItemSimple(gitCommitItem []model.GitCommitItem) []model.GitC
 			if commitInfo.WorkItems != nil {
 				tmpCommitInfoSimple.WorkItems = *commitInfo.WorkItems
 			}
+
+			tmpCommitInfoSimple.CommitIdShort = (*commitInfo.CommitId)[:7]
+
+			repoUrlPattern := regexp.MustCompile("(https://.*?)/commit/[a-f0-9]+$")
+			tmpCommitInfoSimple.RemoteRepoUrl = repoUrlPattern.ReplaceAllString(*commitInfo.RemoteUrl, "$1")
+
+			logger.json.Info("R", "url", tmpCommitInfoSimple.RemoteRepoUrl, "comment", tmpCommitInfoSimple.Comment)
 			ci = append(ci, tmpCommitInfoSimple)
 		}
 		commitItems = append(commitItems, model.GitCommitItemSimple{
@@ -107,16 +107,47 @@ func ReturnGitCommitItemSimple(gitCommitItem []model.GitCommitItem) []model.GitC
 			CommitInfo: ci,
 		})
 	}
+	logger.json.Debug("ReturnGitCommitItemSimple", "commitItems", commitItems)
 	return commitItems
 }
 
-func ValidateUser(user string, userGraph *[]graph.GraphUser) bool {
-	logger.json.Debug("ValidateUser", "users", userGraph)
-	for _, graphUser := range *userGraph {
+type UserValidators interface {
+	ValidateUser(user string, userGraph *[]graph.GraphUser) bool
+	ValidateUsers(users []string, userGraph *[]graph.GraphUser) bool
+}
+
+type UserValidator struct {
+	SystemUsers *[]graph.GraphUser
+}
+
+func NewUserValidator(systemUsers *[]graph.GraphUser) *UserValidator {
+	return &UserValidator{SystemUsers: systemUsers}
+}
+
+func (uv *UserValidator) ValidateUsers(users []string) (bool, []string) {
+	var validUsers = make([]string, 0)
+	logger.json.Info("ValidateUsers", "lengthUsers", len(users), "users", users)
+	if len(users) == 0 {
+		return false, validUsers
+	}
+	for _, user := range users {
+		res, user := uv.ValidateUser(user)
+		if !res {
+			logger.json.Info("ValidateUser", "invalidUser", user)
+			continue
+		}
+		validUsers = append(validUsers, user)
+	}
+	return true, validUsers
+}
+
+func (uv *UserValidator) ValidateUser(user string) (bool, string) {
+	logger.json.Debug("ValidateUser", "users", uv.SystemUsers)
+	for _, graphUser := range *uv.SystemUsers {
 		logger.json.Info("ValidateUser", "user", user, "graphUser", *graphUser.MailAddress)
 		if *graphUser.PrincipalName == user || *graphUser.MailAddress == user {
-			return true
+			return true, user
 		}
 	}
-	return false
+	return false, user
 }

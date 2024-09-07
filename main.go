@@ -43,17 +43,19 @@ var (
 func main() {
 	envVars := config.New()
 	adoCtx := context.Background()
-	userValidated := ado.ValidateUser(
-		envVars.USER,
-		handlers.NewADOClients(adoCtx).
-			ListUsers(adoCtx, envVars.PROJECT))
+
+	adoClients := handlers.NewADOClients(adoCtx)
+
+	allSystemUsers := adoClients.ListUsers(adoCtx, envVars.Project)
+	userValidated, defaultUser := ado.NewUserValidator(allSystemUsers).ValidateUser(envVars.User)
+	_, additionalUsers := ado.NewUserValidator(allSystemUsers).ValidateUsers(envVars.AdditionalUsers)
 
 	globalState := &model.GlobalState{
-		User:            envVars.USER,
-		AdditionalUsers: []string{"Kingsize.nix@outlook.com"},
+		User:            defaultUser,
+		AdditionalUsers: additionalUsers,
 		UserValidated:   userValidated,
 		Projects:        nil,
-		CurrentProject:  envVars.PROJECT,
+		CurrentProject:  envVars.Project,
 	}
 
 	logger.json.Info("main", "globalState", globalState)

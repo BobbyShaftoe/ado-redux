@@ -44,7 +44,7 @@ func filterDashboard(dashboardData string, search string) model.DashboardData {
 	dashboardBytes := []byte(dashboardData)
 	_ = json.Unmarshal(dashboardBytes, &dashboardStruct)
 
-	filteredDashboardCommitItems := make([]model.GitCommitItem, 0)
+	filteredDashboardCommitItems := make([]model.GitCommitItemSimple, 0)
 
 	for _, commit := range dashboardStruct.Commits {
 		matchPattern, err := regexp.Compile(".*" + search + ".*")
@@ -53,7 +53,7 @@ func filterDashboard(dashboardData string, search string) model.DashboardData {
 			break
 		}
 
-		if matched, err := regexp.Match(matchPattern.String(), []byte(*commit.CommitInfo[0].Comment)); err == nil && matched {
+		if matched, err := regexp.Match(matchPattern.String(), []byte(commit.CommitInfo[0].Comment)); err == nil && matched {
 			filteredDashboardCommitItems = append(filteredDashboardCommitItems, commit)
 		}
 	}
@@ -142,13 +142,11 @@ func getDashboardData(globalState *model.GlobalState) model.DashboardData {
 		allCommits = append(allCommits, commits...)
 	}
 	allCommitsSimple := ado.ReturnGitCommitItemSimple(allCommits)
-	logger.json.Info("getDashboardData", "commitsCriteria", commitsCriteria, "allCommitsSimple", allCommitsSimple)
-	//logger.json.Info("getDashboardData", "commitsCriteria", commitsCriteria, "commits", allCommits)
 
 	dashboardData := model.DashboardData{
 		Projects: ado.ReturnProjects(projects),
 		Repos:    ado.ReturnGitRepos(repoNames),
-		Commits:  allCommits,
+		Commits:  allCommitsSimple,
 	}
 	logger.json.Debug("getDashboardData", "dashboardData", dashboardData, "globalState", globalState)
 

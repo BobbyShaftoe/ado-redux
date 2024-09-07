@@ -27,8 +27,8 @@ type ADORequests interface {
 
 func GetADOClientInfo() model.ADOConnectionInfo {
 	adoConnectionInfo := model.ADOConnectionInfo{
-		ConnectionUrl: "https://dev.azure.com/" + config.New().ORGANIZATION,
-		ConnectionPAT: config.New().PAT,
+		ConnectionUrl: "https://dev.azure.com/" + config.New().Organization,
+		ConnectionPAT: config.New().Pat,
 	}
 	return adoConnectionInfo
 }
