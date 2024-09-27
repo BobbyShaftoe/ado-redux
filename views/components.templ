@@ -1,10 +1,35 @@
 package views
 
+import (
+  "fmt"
+  "strings"
+  "net/url"
+)
+
 func getString(inputString *string) string {
 	if inputString == nil {
 		return ""
 	}
 	return *inputString
+}
+
+
+func getStringGeneric[T any](input *T) string {
+	t := *input
+	return fmt.Sprintf("%v", t)
+}
+
+func getLinks(i interface{}) map[string]string {
+	links := make(map[string]string)
+	for k, v := range i.(map[string]interface{}) {
+		linkRef := v.(map[string]interface{})["href"]
+		links[k] = linkRef.(string)
+	}
+	return links
+}
+
+func getRepoBranchUrl(repoUrl string, repoBranch string) string {
+    return repoUrl + "?path=" + url.QueryEscape("/") + "&version=GB" + url.QueryEscape(strings.Replace(repoBranch, "refs/heads/", "", -1)) + "&_a=contents"
 }
 
 templ datePicker() {
@@ -122,7 +147,7 @@ templ datePickerAdvanced() {
 		<div class="container px-4 py-0 mx-auto md:py-1">
 			<div class="w-full mb-0">
 				<label for="datepicker" class="block mb-1 text-sm font-medium text-neutral-500"></label>
-				<div class="relative w-[12rem]">
+				<div class="relative w-[9rem]">
 					<input x-ref="datePickerInput" type="text" @click="datePickerOpen=!datePickerOpen" x-model="datePickerValue" x-on:keydown.escape="datePickerOpen=false" class="flex w-full h-8 px-3 py-1 text-sm bg-white dark:bg-button-blue-mid dark:text-nav-blue-lightest border rounded-md text-neutral-600 border-neutral-300 dark:border-button-blue-dark ring-offset-background placeholder:text-neutral-400 focus:border-neutral-300 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-neutral-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-50" placeholder="Select date" readonly/>
 					<div @click="datePickerOpen=!datePickerOpen; if(datePickerOpen){ $refs.datePickerInput.focus() }" class="absolute top-0 right-0 px-3 py-2 cursor-pointer text-neutral-400 hover:text-neutral-500">
 						<svg class="w-6 h-5 pb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>

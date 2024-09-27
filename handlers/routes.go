@@ -33,7 +33,7 @@ func HandleSearch(globalState *model.GlobalState) http.HandlerFunc {
 		if currentPage == "dashboard" {
 			logger.json.Info("HandleSearch", "match", "dashboard", "page", currentPage)
 			dashboardData := filterDashboard(pageData, searchTerm)
-			templ.Handler(views.DashboardContent(dashboardData, globalState)).ServeHTTP(w, r)
+			templ.Handler(views.DashboardContents(dashboardData)).ServeHTTP(w, r)
 
 		}
 	}
@@ -45,17 +45,28 @@ func filterDashboard(dashboardData string, search string) model.DashboardData {
 	_ = json.Unmarshal(dashboardBytes, &dashboardStruct)
 
 	filteredDashboardCommitItems := make([]model.GitCommitItemSimple, 0)
+	matchPattern, err := regexp.Compile(".*" + search + ".*")
 
 	for _, commit := range dashboardStruct.Commits {
-		matchPattern, err := regexp.Compile(".*" + search + ".*")
+
 		if err != nil {
 			logger.json.Error("filterDashboard", "err", err)
 			break
 		}
 
-		if matched, err := regexp.Match(matchPattern.String(), []byte(commit.CommitInfo[0].Comment)); err == nil && matched {
+		matched := false
+
+		if m, err := regexp.Match(matchPattern.String(), []byte(commit.CommitInfo[0].Comment)); err == nil && m {
+			matched = true
+		}
+		if m, err := regexp.Match(matchPattern.String(), []byte(commit.Repository)); err == nil && m {
+			matched = true
+		}
+
+		if matched {
 			filteredDashboardCommitItems = append(filteredDashboardCommitItems, commit)
 		}
+
 	}
 	dashboardStruct.Commits = filteredDashboardCommitItems
 	return dashboardStruct
@@ -67,9 +78,9 @@ func filterRepositories(repositoriesData string, search string) model.Repositori
 	_ = json.Unmarshal(repositoriesBytes, &repositoriesStruct)
 
 	filteredRepos := make([]model.GitRepo, 0)
+	matchPattern, err := regexp.Compile(".*" + search + ".*")
 
 	for _, repo := range repositoriesStruct.Repos {
-		matchPattern, err := regexp.Compile(".*" + search + ".*")
 		if err != nil {
 			logger.json.Error("filterRepositories", "err", err)
 			break
@@ -109,7 +120,7 @@ func RenderDashboardUpdateProject(globalState *model.GlobalState) http.HandlerFu
 
 		globalState.UpdateGlobalStateProject(project)
 		dashboardData := getDashboardData(globalState)
-		templ.Handler(views.DashboardContent(dashboardData, globalState)).ServeHTTP(w, r)
+		templ.Handler(views.DashboardMain(dashboardData, globalState)).ServeHTTP(w, r)
 	}
 }
 
@@ -141,7 +152,9 @@ func getDashboardData(globalState *model.GlobalState) model.DashboardData {
 		commits := NewADOClients(adoCtx).GetCommits(adoCtx, commitsCriteria, globalState, repositories)
 		allCommits = append(allCommits, commits...)
 	}
+	logger.json.Debug("getDashboardData", "allCommits", allCommits)
 	allCommitsSimple := ado.ReturnGitCommitItemSimple(allCommits)
+	logger.json.Debug("getDashboardData", "allCommitsSimple", allCommitsSimple)
 
 	dashboardData := model.DashboardData{
 		Projects: ado.ReturnProjects(projects),
@@ -152,11 +165,13 @@ func getDashboardData(globalState *model.GlobalState) model.DashboardData {
 
 	// Get builds for the current project
 	buildList := NewADOClients(adoCtx).ListBuilds(adoCtx, globalState, ado.ReturnGitRepos(repoNames))
+	//logger.json.Info("getDashboardData", "buildList", buildList)
 	latestBuilds := NewADOClients(adoCtx).GetLatestBuildsFromBuilds(adoCtx, globalState, buildList)
 
 	//latestBuilds := NewADOClients(adoCtx).GetLatestBuildsFromRepositories(adoCtx, globalState, repositories)
-	logger.json.Debug("getDashboardData", "latestBuilds", latestBuilds)
+	logger.json.Info("getDashboardData", "latestBuilds", latestBuilds)
 	dashboardData.Builds = latestBuilds
+
 	return dashboardData
 }
 

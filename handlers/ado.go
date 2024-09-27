@@ -10,6 +10,7 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/graph"
 	"log"
+	"sort"
 	"sync"
 )
 
@@ -177,6 +178,9 @@ func (adoClients ADOClients) GetCommits(ctx context.Context, gcc *model.GitCommi
 	}
 	wg.Wait()
 
+	sort.Slice(allCommits, func(i, j int) bool {
+		return allCommits[i].Repository < allCommits[j].Repository
+	})
 	return allCommits
 }
 
@@ -194,10 +198,13 @@ func (adoClients ADOClients) GetPush(ctx context.Context, repository string, pus
 
 // The ListBuilds function in the ADOClients struct is designed to retrieve a list of builds from Azure DevOps for a given set of repositories.
 // It takes three parameters: a context.Context object, a globalState object of type *model.GlobalState, and a slice of repository names.
+// https://medium.com/lyonas/go-type-casting-starter-guide-a9c1811670c5
 func (adoClients ADOClients) ListBuilds(ctx context.Context, globalState *model.GlobalState, repositories []model.GitRepo) []build.Build {
 	buildsList := make([]build.Build, 0)
-	var repositoryType = "TfsGit"
+
 	top := 1
+	var repositoryType = "TfsGit"
+	var queryOrder build.BuildQueryOrder = "descending"
 
 	for _, repo := range repositories {
 		repoId := repo.Id.String()
@@ -220,7 +227,7 @@ func (adoClients ADOClients) ListBuilds(ctx context.Context, globalState *model.
 			ContinuationToken:      nil,
 			MaxBuildsPerDefinition: nil,
 			DeletedFilter:          nil,
-			QueryOrder:             nil,
+			QueryOrder:             &queryOrder,
 			BranchName:             nil,
 			BuildIds:               nil,
 			RepositoryId:           &repoId,
@@ -232,7 +239,7 @@ func (adoClients ADOClients) ListBuilds(ctx context.Context, globalState *model.
 		builds := responseValue
 		buildsList = append(buildsList, builds.Value...)
 	}
-	logger.json.Info("ListBuilds", "buildsList", buildsList)
+	logger.json.Debug("ListBuilds", "buildsList", buildsList)
 	return buildsList
 }
 
@@ -240,13 +247,12 @@ func (adoClients ADOClients) ListBuilds(ctx context.Context, globalState *model.
 func (adoClients ADOClients) GetLatestBuildsFromBuilds(ctx context.Context, globalState *model.GlobalState, buildList []build.Build) []build.Build {
 	latestBuilds := make([]build.Build, 0)
 	for _, buildItem := range buildList {
-		//definitionId := "nvm.module.opensearch"
 		//definitionId := strconv.Itoa(*buildItem.Definition.Id)
 		responseValue, err := adoClients.buildClient.GetLatestBuild(ctx, build.GetLatestBuildArgs{
 			Project:    &globalState.CurrentProject,
 			Definition: buildItem.Definition.Name,
 			//Definition: &definitionId,
-			//BranchName: nil,
+			BranchName: buildItem.SourceBranch,
 		})
 
 		if err != nil {

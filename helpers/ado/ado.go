@@ -6,6 +6,7 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/graph"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/webapi"
 	"log/slog"
 	"os"
 	"regexp"
@@ -22,6 +23,15 @@ var logger = &localLogger{
 func fatal(v ...any) {
 	logger.json.Error("main", "err", fmt.Sprint(v...))
 	os.Exit(1)
+}
+
+func ReturnLinks(i interface{}) map[string]string {
+	links := make(map[string]string)
+	for k, v := range i.(map[string]interface{}) {
+		linkRef := v.(map[string]interface{})["href"]
+		links[k] = linkRef.(string)
+	}
+	return links
 }
 
 func ReturnProjects(responseValue *core.GetProjectsResponseValue) []string {
@@ -66,48 +76,57 @@ func ReturnGitRepoNames(gitRepositories *[]git.GitRepository) []string {
 	return repositories
 }
 
-func ReturnGitCommitItemSimple(gitCommitItem []model.GitCommitItem) []model.GitCommitItemSimple {
-	logger.json.Info("ReturnGitCommitItemSimple", "gitCommitItem", gitCommitItem)
+func ReturnGitCommitItemSimple(gitCommitItems []model.GitCommitItem) []model.GitCommitItemSimple {
 	commitItems := make([]model.GitCommitItemSimple, 0)
-	ci := make([]model.CommitInfoSimple, 0)
+	repoUrlPattern := regexp.MustCompile("(https://.*?)/commit/[a-f0-9]+$")
 
-	for _, commitItem := range gitCommitItem {
-		ci = ci[:0]
+	for _, commitItem := range gitCommitItems {
+		ci := make([]model.CommitInfoSimple, 0)
 
 		for _, commitInfo := range commitItem.CommitInfo {
-			tmpCommitInfoSimple := model.CommitInfoSimple{
-				Author:    *commitInfo.Author,
-				Comment:   *commitInfo.Comment,
-				CommitId:  *commitInfo.CommitId,
-				Committer: *commitInfo.Committer,
-				Push:      *commitInfo.Push,
-				RemoteUrl: *commitInfo.RemoteUrl,
-			}
+			commitInfoAuthor := *commitInfo.Author
+			commitInfoComment := *commitInfo.Comment
+			commitInfoCommitId := *commitInfo.CommitId
+			commitInfoCommitter := *commitInfo.Committer
+			commitInfoPush := *commitInfo.Push
+			commitInfoRemoteUrl := *commitInfo.RemoteUrl
 
+			var commitInfoCommentTruncated bool
 			if commitInfo.CommentTruncated != nil {
-				tmpCommitInfoSimple.CommentTruncated = *commitInfo.CommentTruncated
+				commitInfoCommentTruncated = *commitInfo.CommentTruncated
 			}
+			var commitInfoChanges []interface{}
 			if commitInfo.Changes != nil {
-				tmpCommitInfoSimple.Changes = *commitInfo.Changes
+				commitInfoChanges = *commitInfo.Changes
 			}
+			var commitInfoWorkItems []webapi.ResourceRef
 			if commitInfo.WorkItems != nil {
-				tmpCommitInfoSimple.WorkItems = *commitInfo.WorkItems
+				commitInfoWorkItems = *commitInfo.WorkItems
 			}
 
-			tmpCommitInfoSimple.CommitIdShort = (*commitInfo.CommitId)[:7]
+			commitInfoCommitIdShort := commitInfoCommitId[:7]
+			commitInfoRemoteRepoUrl := repoUrlPattern.ReplaceAllString(commitInfoRemoteUrl, "$1")
 
-			repoUrlPattern := regexp.MustCompile("(https://.*?)/commit/[a-f0-9]+$")
-			tmpCommitInfoSimple.RemoteRepoUrl = repoUrlPattern.ReplaceAllString(*commitInfo.RemoteUrl, "$1")
-
-			logger.json.Info("R", "url", tmpCommitInfoSimple.RemoteRepoUrl, "comment", tmpCommitInfoSimple.Comment)
-			ci = append(ci, tmpCommitInfoSimple)
+			ci = append(ci, model.CommitInfoSimple{
+				Author:           commitInfoAuthor,
+				Comment:          commitInfoComment,
+				CommentTruncated: commitInfoCommentTruncated,
+				CommitId:         commitInfoCommitId,
+				CommitIdShort:    commitInfoCommitIdShort,
+				Committer:        commitInfoCommitter,
+				Changes:          commitInfoChanges,
+				Push:             commitInfoPush,
+				RemoteUrl:        commitInfoRemoteUrl,
+				RemoteRepoUrl:    commitInfoRemoteRepoUrl,
+				WorkItems:        commitInfoWorkItems,
+			})
+			logger.json.Debug("ReturnGitCommitItemSimple", "commitItem.Repository", commitItem.Repository, "*commitInfo.Comment", *commitInfo.Comment)
 		}
 		commitItems = append(commitItems, model.GitCommitItemSimple{
 			Repository: commitItem.Repository,
 			CommitInfo: ci,
 		})
 	}
-	logger.json.Debug("ReturnGitCommitItemSimple", "commitItems", commitItems)
 	return commitItems
 }
 
