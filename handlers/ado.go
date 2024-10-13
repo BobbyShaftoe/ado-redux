@@ -9,6 +9,7 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/graph"
+	"io"
 	"log"
 	"sort"
 	"sync"
@@ -196,6 +197,28 @@ func (adoClients ADOClients) GetPush(ctx context.Context, repository string, pus
 	return responseValue
 }
 
+func (adoClients ADOClients) GetBuildsProperties(ctx context.Context, globalState *model.GlobalState, buildsList []build.Build) []map[string]interface{} {
+	buildsProperties := make([]map[string]interface{}, 0)
+
+	for _, buildItem := range buildsList {
+		//propertiesMap := make(map[string]interface{})
+
+		logger.json.Info("GetBuildsProperties", "CurrentProject", &globalState.CurrentProject, "buildItem.Id", buildItem.Id)
+
+		responseValue, err := adoClients.buildClient.GetBuildTimeline(ctx, build.GetBuildTimelineArgs{
+			Project: &globalState.CurrentProject,
+			BuildId: buildItem.Id,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		logger.json.Debug("GetBuildsProperties", "responseValue", responseValue)
+
+	}
+	return buildsProperties
+}
+
 // The ListBuilds function in the ADOClients struct is designed to retrieve a list of builds from Azure DevOps for a given set of repositories.
 // It takes three parameters: a context.Context object, a globalState object of type *model.GlobalState, and a slice of repository names.
 // https://medium.com/lyonas/go-type-casting-starter-guide-a9c1811670c5
@@ -285,6 +308,66 @@ func (adoClients ADOClients) GetLatestBuildsFromRepositories(ctx context.Context
 		//logger.json.Info("GetLatestBuildsFromRepositories", "latestBuild", responseValue)
 	}
 	return latestBuilds
+}
+
+func (adoClients ADOClients) GetBuildLogs(ctx context.Context, globalState *model.GlobalState, buildLogs map[int]*[]build.BuildLog) map[int][]map[int]string {
+	allBuildLogs := make(map[int][]map[int]string)
+	var logCount = 2
+
+	for buildKey, buildItem := range buildLogs {
+		logger.json.Debug("GetBuildLogs", "buildKey", buildKey)
+		b := *buildItem
+
+		buildLogsList := make([]map[int]string, 0)
+		for i := len(b) - 1; i > len(b)-logCount-1; i-- {
+			logger.json.Debug("GetBuildLogs", "buildId", buildKey, "Index", i, "buildLog", b[i])
+
+			responseValue, err := adoClients.buildClient.GetBuildLog(ctx, build.GetBuildLogArgs{
+				Project:   &globalState.CurrentProject,
+				BuildId:   &buildKey,
+				LogId:     b[i].Id,
+				StartLine: nil,
+				EndLine:   nil,
+			})
+			if err != nil {
+				logger.json.Error("GetBuildLogs", "err", err)
+				continue
+			}
+			// returns bytes
+			z, err := io.ReadAll(responseValue)
+			if err != nil {
+				logger.json.Error("GetBuildLogs", "err", err)
+				continue
+			}
+			// bytes to string
+			buildLogsList = append(buildLogsList, map[int]string{i: string(z[:])})
+
+		}
+		logger.json.Debug("GetBuildLogs", "buildLogsList", buildLogsList)
+		allBuildLogs[buildKey] = buildLogsList
+	}
+	return allBuildLogs
+}
+
+func (adoClients ADOClients) GetBuildsLogs(ctx context.Context, globalState *model.GlobalState, buildList []build.Build) map[int]*[]build.BuildLog {
+	buildLogsMap := make(map[int]*[]build.BuildLog)
+
+	for _, buildItem := range buildList {
+		buildId := *buildItem.Id
+
+		logger.json.Info("GetBuildLogs", "buildId", buildId)
+
+		responseValue, err := adoClients.buildClient.GetBuildLogs(ctx, build.GetBuildLogsArgs{
+			Project: &globalState.CurrentProject,
+			BuildId: buildItem.Id,
+		})
+		if err != nil {
+			logger.json.Error("GetBuildLogs", "err", err)
+		}
+		buildLogsMap[buildId] = responseValue
+	}
+
+	return buildLogsMap
 }
 
 func (adoClients ADOClients) ListUsers(ctx context.Context, project string) *[]graph.GraphUser {

@@ -166,11 +166,20 @@ func getDashboardData(globalState *model.GlobalState) model.DashboardData {
 	// Get builds for the current project
 	buildList := NewADOClients(adoCtx).ListBuilds(adoCtx, globalState, ado.ReturnGitRepos(repoNames))
 	//logger.json.Info("getDashboardData", "buildList", buildList)
-	latestBuilds := NewADOClients(adoCtx).GetLatestBuildsFromBuilds(adoCtx, globalState, buildList)
 
+	buildListProperties := NewADOClients(adoCtx).GetBuildsProperties(adoCtx, globalState, buildList)
+	logger.json.Debug("getDashboardData", "buildListProperties", buildListProperties)
+
+	latestBuilds := NewADOClients(adoCtx).GetLatestBuildsFromBuilds(adoCtx, globalState, buildList)
 	//latestBuilds := NewADOClients(adoCtx).GetLatestBuildsFromRepositories(adoCtx, globalState, repositories)
-	logger.json.Info("getDashboardData", "latestBuilds", latestBuilds)
+	logger.json.Debug("getDashboardData", "latestBuilds", latestBuilds)
 	dashboardData.Builds = latestBuilds
+
+	allBuildsLogs := NewADOClients(adoCtx).GetBuildsLogs(adoCtx, globalState, latestBuilds)
+	logger.json.Debug("getDashboardData", "allBuildsLogs", allBuildsLogs)
+
+	allBuildsLogsContent := NewADOClients(adoCtx).GetBuildLogs(adoCtx, globalState, allBuildsLogs)
+	logger.json.Info("getDashboardData", "allBuildsLogsContent", allBuildsLogsContent)
 
 	return dashboardData
 }
